@@ -3,17 +3,15 @@
 
 import sys
 
-from datavis.core import ModelsFactory
-from datavis.views import VolumeListView, CIRCLE_ROI
-from datavis.models import AXIS_X, AXIS_Y, AXIS_Z, AXIS_XYZ
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
 
 
-class TestRoiMaskVolumeListView(TestView):
+class TestRoiMaskVolumeListView(dv.tests.TestView):
     __title = "RoiMaskVolumeListView example"
 
     def __init__(self, singleAxis):
-        self._mode = AXIS_Z if singleAxis else AXIS_XYZ
+        self._mode = dv.models.AXIS_Z if singleAxis else dv.models.AXIS_XYZ
 
     def getDataPaths(self):
         return [
@@ -28,21 +26,25 @@ class TestRoiMaskVolumeListView(TestView):
 
     def createView(self):
         maskColor = '#154BBC23'
-        slicesKwargs = {AXIS_X: {'imageViewKwargs': {'mask': CIRCLE_ROI,
-                                                     'maskColor': maskColor,
-                                                     'maskSize': 20}
+        slicesKwargs = {
+            dv.models.AXIS_X: {
+                'imageViewKwargs': {'mask': dv.views.CIRCLE_ROI,
+                                    'maskColor': maskColor,
+                                    'maskSize': 20}
+                                },
+            dv.models.AXIS_Y: {
+                'imageViewKwargs': {'mask': dv.views.CIRCLE_ROI,
+                                    'maskColor': maskColor,
+                                    'maskSize': 20}
                                  },
-                        AXIS_Y: {'imageViewKwargs': {'mask': CIRCLE_ROI,
-                                                     'maskColor': maskColor,
-                                                     'maskSize': 20}
-                                 },
-                        AXIS_Z: {'imageViewKwargs': {'mask': CIRCLE_ROI,
-                                                     'maskColor': maskColor,
-                                                     'maskSize': 20}
+            dv.models.AXIS_Z: {
+                'imageViewKwargs': {'mask': dv.views.CIRCLE_ROI,
+                                    'maskColor': maskColor,
+                                    'maskSize': 20}
                                  }
-                        }
-        return VolumeListView(
-            None, ModelsFactory.createListModel(self.getDataPaths()),
+        }
+        return dv.views.VolumeListView(
+            None, emv.ModelsFactory.createListModel(self.getDataPaths()),
             slicesKwargs=slicesKwargs, slicesMode=self._mode)
 
 

@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datavis.core import ModelsFactory
-from datavis.views import ImageMaskListView, CIRCLE_ROI
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
 
 
-class TestRoiMaskListView(TestView):
+class TestRoiMaskListView(dv.tests.TestView):
     __title = "ImageMaskListView example"
 
     def getDataPaths(self):
@@ -17,9 +16,9 @@ class TestRoiMaskListView(TestView):
         ]
 
     def createView(self):
-        return ImageMaskListView(
-            None, ModelsFactory.createListModel(self.getDataPaths()),
-            maskColor='#154BBC23', mask=CIRCLE_ROI, maskSize=500)
+        return dv.views.ImageMaskListView(
+            None, emv.ModelsFactory.createListModel(self.getDataPaths()),
+            maskColor='#154BBC23', mask=dv.views.CIRCLE_ROI, maskSize=500)
 
 
 if __name__ == '__main__':

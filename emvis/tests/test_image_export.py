@@ -1,17 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-import pyqtgraph as pg
+from __future__ import absolute_import
 
 import PyQt5.QtWidgets as qtw
+import pyqtgraph as pg
 
-from datavis.core import ModelsFactory
 from datavis.widgets import TriggerAction
 from datavis.views import ImageView, CIRCLE_ROI
-from test_commons import TestView
+
+import datavis as dv
+import emvis as emv
 
 
-class TestImageView(TestView):
+class TestImageView(dv.tests.TestView):
     __title = "ImageView explort example"
 
     def getDataPaths(self):
@@ -22,8 +23,8 @@ class TestImageView(TestView):
     def createView(self):
         imageView = ImageView(parent=None, border_color='#FFAA33', axis=True,
                               toolBar=False, maskColor='#224BBC23',
-                              mask=CIRCLE_ROI, maskSize=500)
-        imgModel = ModelsFactory.createImageModel(self._path)
+                              mask=dv.views.CIRCLE_ROI, maskSize=500)
+        imgModel = emv.ModelsFactory.createImageModel(self._path)
         imageView.setModel(imgModel)
         dim_x, dim_y = imgModel.getDim()
         index, path = imgModel.getLocation()
@@ -38,15 +39,17 @@ class TestImageView(TestView):
         layout = qtw.QVBoxLayout(view)
         toolbar = qtw.QToolBar(view)
         layout.addWidget(toolbar)
-        toolbar.addAction(TriggerAction(toolbar, actionName='SaveAll',
-                                        tooltip='Export all view',
-                                        faIconName='fa.save',
-                                        slot=self.__exportView))
+        toolbar.addAction(
+            dv.widgets.TriggerAction(toolbar, actionName='SaveAll',
+                                     tooltip='Export all view',
+                                     faIconName='fa.save',
+                                     slot=self.__exportView))
         toolbar.addSeparator()
-        toolbar.addAction(TriggerAction(toolbar, actionName='SaveImage',
-                                        tooltip='Export image and content',
-                                        faIconName='fa5s.save',
-                                        slot=self.__export))
+        toolbar.addAction(
+            dv.widgets.TriggerAction(toolbar, actionName='SaveImage',
+                                     tooltip='Export image and content',
+                                     faIconName='fa5s.save',
+                                     slot=self.__export))
         layout.addWidget(imageView)
         self._imageView = imageView
         return view

@@ -1,14 +1,13 @@
 
 import os
-import sys
 import unittest
 
+import datavis as dv
 import emcore as emc
-from datavis.core import ImageManager
-from test_commons import TestBase
+import emvis as emv
 
 
-class TestImageManager(TestBase):
+class TestImageManager(dv.tests.TestBase):
     def getDataPaths(self):
         return [
             self.getPath("relion_tutorial", "import", "refine3d", "extra",
@@ -23,7 +22,7 @@ class TestImageManager(TestBase):
         row = table[0]
         imgPath = str(row['rlnImageName'])
 
-        im = ImageManager()
+        im = emv.ImageManager()
         realPath = imgPath.split('@')[1]
         imgPrefix = im.findImagePrefix(realPath, tableFn)
         self.assertEqual(imgPrefix, expectedPrefix)

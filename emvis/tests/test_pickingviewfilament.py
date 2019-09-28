@@ -4,9 +4,9 @@
 import os
 from glob import glob
 
-from datavis.core import ViewsFactory
-from datavis.views import PagingView, SHAPE_CIRCLE, FILAMENT_MODE
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
+
 
 tool_params1 = [
     [
@@ -87,7 +87,7 @@ tool_params1 = [
 ]
 
 
-class TestPickerView(TestView):
+class TestPickerView(dv.tests.TestView):
     __title = "PickerView Example"
 
     def __parseFiles(self, values):
@@ -127,11 +127,11 @@ class TestPickerView(TestView):
 
     def createView(self):
         kwargs = dict()
-        kwargs['selectionMode'] = PagingView.SINGLE_SELECTION
+        kwargs['selectionMode'] = dv.views.PagingView.SINGLE_SELECTION
         kwargs['pickerParams'] = tool_params1
         kwargs['boxSize'] = 300
-        kwargs['pickerMode'] = FILAMENT_MODE
-        kwargs['shape'] = SHAPE_CIRCLE
+        kwargs['pickerMode'] = dv.views.FILAMENT_MODE
+        kwargs['shape'] = dv.views.SHAPE_CIRCLE
         kwargs['removeRois'] = True
         kwargs['roiAspectLocked'] = True
         kwargs['roiCentered'] = True
@@ -139,7 +139,7 @@ class TestPickerView(TestView):
         kwargs['sources'] = self.__parseFiles(["%s*" % dataPaths[1],
                                                "%s*" % dataPaths[0]])
         files = [micPath for (micPath, _) in kwargs['sources'].values()]
-        return ViewsFactory.createPickerView(files, **kwargs)
+        return emv.ViewsFactory.createPickerView(files, **kwargs)
 
 
 if __name__ == '__main__':

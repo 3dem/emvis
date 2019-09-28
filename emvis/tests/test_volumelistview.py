@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datavis.core import ModelsFactory
-from datavis.views import VolumeListView
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
 
 
-class TestVolumeListView(TestView):
+class TestVolumeListView(dv.tests.TestView):
     __title = "VolumeListView example"
 
     def getDataPaths(self):
@@ -19,8 +18,8 @@ class TestVolumeListView(TestView):
         ]
 
     def createView(self):
-        return VolumeListView(
-            None, ModelsFactory.createListModel(self.getDataPaths()))
+        return dv.views.VolumeListView(
+            None, emv.ModelsFactory.createListModel(self.getDataPaths()))
 
 
 if __name__ == '__main__':

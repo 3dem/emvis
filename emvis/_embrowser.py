@@ -1,22 +1,22 @@
 
 import PyQt5.QtWidgets as qtw
 
-from datavis.views import (DataView,  VolumeView, ImageView, SlicesView, ITEMS,
-                         COLUMNS, GALLERY)
-from datavis.widgets import FileBrowser
-from datavis.models import EmptyTableModel, EmptySlicesModel, EmptyVolumeModel
-from datavis.core import ModelsFactory, ImageManager, EmPath, MOVIE_SIZE
+import datavis as dv
+
+from ._models_factory import ModelsFactory
+from ._image_manager import ImageManager
+from ._empath import EmPath
+from .utils import MOVIE_SIZE
 
 
-class EmBrowser(FileBrowser):
+class EmBrowser(dv.widgets.FileBrowser):
     """ """
-
     def __init__(self, **kwargs):
         """
         Creates a EmBrowser instance
-        :param kwargs: See FileBrowser params
+        :param kwargs: See dv.widgets.FileBrowser params
         """
-        FileBrowser.__init__(self, **kwargs)
+        dv.widgets.FileBrowser.__init__(self, **kwargs)
         self._dataView.sigCurrentTableChanged.connect(
             self.__onDataViewTableChanged)
 
@@ -27,8 +27,8 @@ class EmBrowser(FileBrowser):
         if model is not None:
             info = dict()
             info["Type"] = "TABLE"
-            info["Dimensions (Rows x Columns)"] = \
-                "%d x %d" % (model.totalRowCount(), model.columnCount())
+            dimTuple = (model.totalRowCount(), model.columnCount())
+            info["Dimensions (Rows x Columns)"] = "%d x %d" % dimTuple
             self.__showInfo(info)
 
     def __showMsgBox(self, text, icon=None, details=None):
@@ -76,11 +76,11 @@ class EmBrowser(FileBrowser):
         self._stackLayout.setCurrentWidget(self._dataView)
 
     def __showImageView(self):
-        """ Show the ImageView component """
+        """ Show the dv.views.ImageView component """
         self._stackLayout.setCurrentWidget(self._imageView)
 
     def __showSlicesView(self):
-        """ Show the SlicesView component """
+        """ Show the dv.views.SlicesView component """
         self._stackLayout.setCurrentWidget(self._slicesView)
 
     def __showEmptyWidget(self):
@@ -90,13 +90,14 @@ class EmBrowser(FileBrowser):
     def _createViewPanel(self, **kwargs):
         viewPanel = qtw.QWidget(self)
 
-        self._dataView = DataView(viewPanel, model=EmptyTableModel(), **kwargs)
-        self._imageView = ImageView(viewPanel, **kwargs)
-        self._slicesView = SlicesView(viewPanel, EmptySlicesModel(), **kwargs)
+        self._dataView = dv.views.DataView(
+            viewPanel, model=dv.models.EmptyTableModel(), **kwargs)
+        self._imageView = dv.views.ImageView(viewPanel, **kwargs)
+        self._slicesView = dv.views.SlicesView(
+            viewPanel, dv.models.EmptySlicesModel(), **kwargs)
 
-        self._volumeView = VolumeView(parent=viewPanel,
-                                      model=EmptyVolumeModel(),
-                                      **kwargs)
+        self._volumeView = dv.views.VolumeView(
+            parent=viewPanel, model=dv.models.EmptyVolumeModel(), **kwargs)
         self._emptyWidget = qtw.QWidget(parent=viewPanel)
 
         layout = qtw.QHBoxLayout(viewPanel)
@@ -115,8 +116,8 @@ class EmBrowser(FileBrowser):
 
     def showFile(self, imagePath):
         """
-        This method display an image using of pyqtgraph ImageView, a volume
-        using the VOLUME-SLICER or GALLERY-VIEW components, a image stack or
+        This method display an image using of pyqtgraph dv.views.ImageView, a volume
+        using the VOLUME-SLICER or dv.views.GALLERY-VIEW components, a image stack or
         a Table characteristics.
 
         pageBar provides:
@@ -135,9 +136,9 @@ class EmBrowser(FileBrowser):
                 model = ModelsFactory.createTableModel(imagePath)
                 self._dataView.setModel(model)
                 if not model.getRowsCount() == 1:
-                    self._dataView.setView(COLUMNS)
+                    self._dataView.setView(dv.views.COLUMNS)
                 else:
-                    self._dataView.setView(ITEMS)
+                    self._dataView.setView(dv.views.ITEMS)
 
                 self.__showDataView()
                 # Show the Table dimensions
@@ -173,7 +174,7 @@ class EmBrowser(FileBrowser):
                         info['type'] = 'IMAGES STACK'
                         model = ModelsFactory.createTableModel(imagePath)
                         self._dataView.setModel(model)
-                        self._dataView.setView(GALLERY)
+                        self._dataView.setView(dv.views.GALLERY)
                         self.__showDataView()
                     else:
                         info['type'] = 'MOVIE'

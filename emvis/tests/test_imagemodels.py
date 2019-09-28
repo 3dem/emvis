@@ -1,15 +1,13 @@
 
 import os
-import sys
 import unittest
 
+import datavis as dv
 import emcore as emc
-import datavis.models as models
-from datavis.core import ImageManager
-from test_commons import TestBase
+import emvis as emv
 
 
-class TestImageModels(TestBase):
+class TestImageModels(dv.tests.TestBase):
     def getDataPaths(self):
         return [
             self.getPath("xmipp_tutorial", "micrographs", "BPV_1386.mrc"),
@@ -23,7 +21,7 @@ class TestImageModels(TestBase):
         row = table[0]
         imgPath = str(row['rlnImageName'])
 
-        im = ImageManager()
+        im = emv.ImageManager()
         realPath = imgPath.split('@')[1]
         imgPrefix = im.findImagePrefix(realPath, tableFn)
         self.assertEqual(imgPrefix, expectedPrefix)
@@ -33,7 +31,8 @@ class TestImageModels(TestBase):
         micName = self.getDataPaths()[0]
         print("Checking %s" % micName)
 
-        imageModel = models.ImageModel(data=ImageManager().getData(micName))
+        imageModel = dv.models.ImageModel(
+            data=emv.ImageManager().getData(micName))
         minValue, maxValue = imageModel.getMinMax()
 
         self.assertEqual(imageModel.getDim(), (9216, 9441))
@@ -51,7 +50,8 @@ class TestImageModels(TestBase):
         volName = self.getDataPaths()[2]
         print("Checking %s" % volName)
 
-        volModel = models.VolumeModel(data=ImageManager().getData(volName))
+        volModel = dv.models.VolumeModel(
+            data=emv.ImageManager().getData(volName))
         minValue, maxValue = volModel.getMinMax()
 
         def _check(model):
@@ -61,9 +61,9 @@ class TestImageModels(TestBase):
             self.assertIsNotNone(model.getData())
 
         _check(volModel)
-        sliceModel = volModel.getSlicesModel(models.AXIS_Z)
+        sliceModel = volModel.getSlicesModel(dv.models.AXIS_Z)
         _check(sliceModel)
-        imageModel = volModel.getSliceImageModel(0, models.AXIS_Z)
+        imageModel = volModel.getSliceImageModel(0, dv.models.AXIS_Z)
         self.assertEqual(imageModel.getDim(), (300, 300))
 
         volModel.setData(None)

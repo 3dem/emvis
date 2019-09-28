@@ -3,16 +3,13 @@
 
 import os
 import sys
-from glob import glob
 
+import datavis as dv
 import emcore as emc
-from datavis.views import PagingView, SHAPE_CIRCLE, DEFAULT_MODE, PickerView
-from datavis.models import PickerDataModel, Micrograph, Coordinate
-from datavis.core import EmPickerDataModel
-from test_commons import TestView
+import emvis as emv
 
 
-class TestPickerView(TestView):
+class TestPickerView(dv.tests.TestView):
     __title = "Relion picking viewer"
 
     def __init__(self, projectFolder, micStar, pickingFolder):
@@ -27,10 +24,10 @@ class TestPickerView(TestView):
 
     def createView(self):
         kwargs = dict()
-        kwargs['selectionMode'] = PagingView.SINGLE_SELECTION
+        kwargs['selectionMode'] = dv.views.PagingView.SINGLE_SELECTION
         kwargs['boxSize'] = 300
-        kwargs['pickerMode'] = DEFAULT_MODE
-        kwargs['shape'] = SHAPE_CIRCLE
+        kwargs['pickerMode'] = dv.views.DEFAULT_MODE
+        kwargs['shape'] = dv.views.SHAPE_CIRCLE
         kwargs['removeRois'] = True
         kwargs['roiAspectLocked'] = True
         kwargs['roiCentered'] = True
@@ -63,7 +60,7 @@ class TestPickerView(TestView):
         coordTable = emc.Table()
         table.read(micsStarPath)
 
-        model = EmPickerDataModel()
+        model = emv.EmPickerDataModel()
         model.setBoxSize(64)
 
         def _getMicPath(micName):
@@ -78,7 +75,7 @@ class TestPickerView(TestView):
 
         for i, row in enumerate(table):
             micPath = _getMicPath(str(row['rlnMicrographName']))
-            mic = Micrograph(i + 1, micPath)
+            mic = dv.models.Micrograph(i + 1, micPath)
             micCoordsFn = os.path.join(
                 pickingPath,
                 os.path.basename(micPath).replace(".mrc", "_autopick.star"))
@@ -86,11 +83,12 @@ class TestPickerView(TestView):
                 coordTable.read(micCoordsFn)
                 for coordRow in coordTable:
                     mic.addCoordinate(
-                        Coordinate(round(float(coordRow['rlnCoordinateY'])),
-                                   round(float(coordRow['rlnCoordinateX']))))
+                        dv.models.Coordinate(
+                            round(float(coordRow['rlnCoordinateY'])),
+                            round(float(coordRow['rlnCoordinateX']))))
             model.addMicrograph(mic)
 
-        return PickerView(None, model=model, **kwargs)
+        return dv.views.PickerView(None, model=model, **kwargs)
 
 
 if __name__ == '__main__':

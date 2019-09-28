@@ -1,14 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datavis.views import VolumeView
-from datavis.core import ModelsFactory
-from datavis.models import AXIS_X, AXIS_Y, AXIS_Z, AXIS_XYZ
-
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
 
 
-class TestVolumeView(TestView):
+class TestVolumeView(dv.tests.TestView):
     __title = "Volume View example"
 
     def getDataPaths(self):
@@ -21,9 +18,11 @@ class TestVolumeView(TestView):
     def createView(self):
         print("File: %s" % self._path)
         self._path = self.getDataPaths()[0]
-        volModel = ModelsFactory.createVolumeModel(self._path)
-        return VolumeView(None, model=volModel, toolBar=True,
-                          slicesMode=AXIS_XYZ)
+        volModel = emv.ModelsFactory.createVolumeModel(self._path)
+        return dv.views.VolumeView(None,
+                                   model=volModel,
+                                   toolBar=True,
+                                   slicesMode=dv.models.AXIS_XYZ)
 
 
 if __name__ == '__main__':

@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datavis.core import ModelsFactory
-from datavis.views import ImageMaskListView
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
 
 
-class TestImageMaskListView(TestView):
+class TestImageMaskListView(dv.tests.TestView):
     __title = "ImageMaskListView example"
 
     def getDataPaths(self):
@@ -23,8 +22,8 @@ class TestImageMaskListView(TestView):
         for i in range(300, 600):
             for j in range(300, 600):
                 mask[i][j] = 1
-        return ImageMaskListView(
-            None, ModelsFactory.createListModel(self.getDataPaths()),
+        return dv.views.ImageMaskListView(
+            None, emv.ModelsFactory.createListModel(self.getDataPaths()),
             maskColor='#334BBC23', mask=mask)
 
 

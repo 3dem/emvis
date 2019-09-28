@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datavis.core import ModelsFactory
-from datavis.views import ImageListView
-from test_commons import TestView
+import datavis as dv
+import emvis as emv
 
 
-class TestImageListView(TestView):
+class TestImageListView(dv.tests.TestView):
     __title = "ImageListView example"
 
     def getDataPaths(self):
@@ -16,8 +15,8 @@ class TestImageListView(TestView):
         ]
 
     def createView(self):
-        return ImageListView(
-            None, ModelsFactory.createTableModel(self.getDataPaths()[0]))
+        return dv.views.ImageListView(
+            None, emv.ModelsFactory.createTableModel(self.getDataPaths()[0]))
 
 
 if __name__ == '__main__':
