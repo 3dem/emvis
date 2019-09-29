@@ -5,8 +5,7 @@ from __future__ import absolute_import
 import PyQt5.QtWidgets as qtw
 import pyqtgraph as pg
 
-from datavis.widgets import TriggerAction
-from datavis.views import ImageView, CIRCLE_ROI
+from datavis.views import ImageView
 
 import datavis as dv
 import emvis as emv
