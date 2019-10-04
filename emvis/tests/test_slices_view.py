@@ -27,7 +27,8 @@ class TestSlicesView(dv.tests.TestView):
             text = "Stack, image number: "
             value = 1
         else:
-            raise Exception("Invalid input, it should be either volume or stack")
+            raise Exception(
+                "Invalid input, it should be either volume or stack")
 
         return dv.views.SlicesView(None, model, text=text, currentValue=value)
 

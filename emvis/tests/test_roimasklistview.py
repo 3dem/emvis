@@ -6,7 +6,7 @@ import emvis as emv
 
 
 class TestRoiMaskListView(dv.tests.TestView):
-    __title = "ImageMaskListView example"
+    __title = "RoiMaskListView example"
 
     def getDataPaths(self):
         return [
