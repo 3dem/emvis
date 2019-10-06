@@ -30,19 +30,22 @@ class TestImageMaskVolumeListView(dv.tests.TestView):
             for j in range(20, 44):
                 mask[i][j] = 1
         maskColor = '#334BBC23'
-        slicesKwargs = {dv.models.AXIS_X: {'imageViewKwargs': {'mask': mask,
-                                                     'maskColor': maskColor
-                                                     }
+        slicesKwargs = {dv.models.AXIS_X: {
+            'imageViewKwargs':
+                {'mask': mask,
+                 'maskColor': maskColor
+                 }
+                 },
+            dv.models.AXIS_Y: {
+                'imageViewKwargs': {'mask': mask,
+                                    'maskColor': maskColor
+                                    }
                                  },
-                        dv.models.AXIS_Y: {'imageViewKwargs': {'mask': mask,
-                                                     'maskColor': maskColor
-                                                     }
-                                 },
-                        dv.models.AXIS_Z: {'imageViewKwargs': {'mask': mask,
-                                                     'maskColor': maskColor
-                                                     }
-                                 }
-                        }
+            dv.models.AXIS_Z: {'imageViewKwargs': {'mask': mask,
+                                                   'maskColor': maskColor
+                                                   }
+                               }
+        }
         return dv.views.VolumeListView(
             None, emv.ModelsFactory.createListModel(self.getDataPaths()),
             slicesKwargs=slicesKwargs, slicesMode=dv.models.AXIS_XYZ)

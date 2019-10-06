@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
-
-from datavis.models import Coordinate, Micrograph, PickerDataModel
+from datavis.models import Coordinate, Micrograph
 
 MOVIE_SIZE = 1000
 
@@ -12,7 +10,8 @@ MOVIE_SIZE = 1000
 # FIXME: If yes, maybe moved to models._picking?
 class ImageElemParser:
     """
-    This class is responsible for building an ImageElem according to a specification format.
+    This class is responsible for building an ImageElem according to a
+    specification format.
     Specification supported: JSON format. (See parseImage documentation)
     """
 
