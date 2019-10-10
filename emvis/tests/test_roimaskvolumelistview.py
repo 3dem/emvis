@@ -25,23 +25,20 @@ class TestRoiMaskVolumeListView(dv.tests.TestView):
         ]
 
     def createView(self):
-        maskColor = '#154BBC23'
+        maskParams = {
+            'type': dv.views.CIRCLE_ROI,
+            'color': '#154BBC23',
+            'data': 20,
+            'operation': None,
+            'showHandles': True
+        }
         slicesKwargs = {
             dv.models.AXIS_X: {
-                'imageViewKwargs': {'mask': dv.views.CIRCLE_ROI,
-                                    'maskColor': maskColor,
-                                    'maskSize': 20}
-                                },
+                'imageViewKwargs': {'maskParams': maskParams}},
             dv.models.AXIS_Y: {
-                'imageViewKwargs': {'mask': dv.views.CIRCLE_ROI,
-                                    'maskColor': maskColor,
-                                    'maskSize': 20}
-                                 },
+                'imageViewKwargs': {'maskParams': maskParams}},
             dv.models.AXIS_Z: {
-                'imageViewKwargs': {'mask': dv.views.CIRCLE_ROI,
-                                    'maskColor': maskColor,
-                                    'maskSize': 20}
-                                 }
+                'imageViewKwargs': {'maskParams': maskParams}}
         }
         return dv.views.VolumeListView(
             None, emv.ModelsFactory.createListModel(self.getDataPaths()),

@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
 import sys
 import traceback
-import argparse
-from glob import glob
 
 import PyQt5.QtCore as qtc
 import PyQt5.QtWidgets as qtw
@@ -13,105 +10,7 @@ import PyQt5.QtWidgets as qtw
 import datavis as dv
 import emvis as emv
 
-
-class ValidateValues(argparse.Action):
-    """ Class that allows the validation of mapped arguments values to the user
-    valuesDict. The valuesDict keys most be specified in lower case.
-    Example of use with argparse:
-    on_off = {'on': True, 'off': False}
-    argParser.add_argument('--zoom', type=str, default='on', required=False,
-                           choices=on_off.keys(), action=ValidateValues,
-                           valuesDict=on_off,
-                           help=' Enable/disable the option to zoom in/out in '
-                                'the image(s)')
-    """
-    def __init__(self, option_strings, dest, valuesDict, **kwargs):
-        """ Creates a ValidateValues object
-         - kwargs: The argparse.Action arguments and
-            - valuesDict:  (dict) a dictionary for maps the values
-        """
-        argparse.Action.__init__(self, option_strings, dest, **kwargs)
-        self._valuesDict = valuesDict or dict()
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        values = str(values).lower()
-        value = self._valuesDict.get(values, self._valuesDict.get(
-            values.upper()))
-        if value is None:
-            raise ValueError("Invalid argument for %s" % option_string)
-        setattr(namespace, self.dest, value)
-
-
-class ValidateMics(argparse.Action):
-    """
-    Class that allows the validation of the values corresponding to
-    the "picker" parameter
-    """
-
-    def __init__(self, option_strings, dest, **kwargs):
-        argparse.Action.__init__(self, option_strings, dest, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        """
-        Validate the maximum number of values corresponding to the
-        picker parameter. Try to matching a path pattern for micrographs
-        and another for coordinates.
-
-        Return a list of tuples [mic_path, pick_path].
-        """
-        length = len(values)
-        result = dict()
-        if length > 2:
-            raise ValueError("Invalid number of arguments for %s. Only 2 "
-                             "arguments are supported." % option_string)
-
-        if length > 0:
-            mics = self.__ls(values[0])
-            for i in mics:
-                basename = os.path.splitext(os.path.basename(i))[0]
-                result[basename] = (i, None)
-
-        if length > 1:
-            coords = self.__ls(values[1])
-            for i in coords:
-                basename = os.path.splitext(os.path.basename(i))[0]
-                t = result.get(basename)
-                if t:
-                    result[basename] = (t[0], i)
-
-        setattr(namespace, self.dest, result)
-
-    def __ls(self, pattern):
-        return glob(pattern)
-
-
-class ValidateStrList(argparse.Action):
-    """
-    Class that allows the validation of the values corresponding to
-    the "picker" parameter
-    """
-
-    def __init__(self, option_strings, dest, **kwargs):
-        argparse.Action.__init__(self, option_strings, dest, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        """
-        Build a list with parameters separated by spaces.
-        """
-        setattr(namespace, self.dest, values.split())
-
-
-def capitalizeStrList(strIterable):
-    """
-    Returns a capitalized str list from the given strIterable object
-    :param strIterable: Iterable object
-    """
-    ret = []
-
-    for v in strIterable:
-        ret.append(v)
-        ret.append(v.capitalize())
-    return ret
+from emvis.apps import *
 
 
 if __name__ == '__main__':
@@ -191,7 +90,7 @@ if __name__ == '__main__':
         'SEGMENT': dv.views.SHAPE_SEGMENT
     }
     shape_params = capitalizeStrList(shapeDict.keys())
-    argParser.add_argument('--shape', default=dv.views.SHAPE_RECT,
+    argParser.add_argument('--shape', default=dv.views.SHAPE_CIRCLE,
                            required=False, choices=shape_params,
                            valuesDict=shapeDict,
                            action=ValidateValues,
@@ -202,8 +101,8 @@ if __name__ == '__main__':
         'filament': dv.views.FILAMENT_MODE
     }
     picker_params = capitalizeStrList(pickerDict.keys())
-    argParser.add_argument('--picker-mode', type=str, default=dv.views.DEFAULT_MODE,
-                           required=False,
+    argParser.add_argument('--picker-mode', type=str,
+                           default=dv.views.DEFAULT_MODE, required=False,
                            choices=picker_params, valuesDict=pickerDict,
                            action=ValidateValues,
                            help=' the picker type [default or filament]')
@@ -340,8 +239,9 @@ if __name__ == '__main__':
             if files and files[0] == str(os.getcwd()):
                 files = None
             kwargs['selectionMode'] = dv.views.PagingView.SINGLE_SELECTION
-            view = emv.ViewsFactory.createPickerView(files, sources=args.picker,
-                                                     **kwargs)
+            view = emv.ViewsFactory.createPickerView(
+                files, sources=args.picker, parseCoordFunc=parsePickCoordinates,
+                **kwargs)
             view.setWindowTitle("EM-PICKER")
             d = view.getPreferredSize()
         else:
@@ -394,7 +294,8 @@ if __name__ == '__main__':
                         else:
                             raise Exception("Invalid display mode for volume")
                 else:  # Stack
-                    kwargs['selectionMode'] = dv.views.PagingView.SINGLE_SELECTION
+                    m = dv.views.PagingView.SINGLE_SELECTION
+                    kwargs['selectionMode'] = m
                     if z > 1:  # volume stack
                         mode = args.view or dv.views.SLICES
                         if mode == dv.views.SLICES:
@@ -407,7 +308,8 @@ if __name__ == '__main__':
                             view = emv.ViewsFactory.createDataView(files,
                                                                    **kwargs)
                     else:
-                        mode = args.view or (dv.views.SLICES if x > dv.views.MOVIE_SIZE
+                        ms = dv.views.MOVIE_SIZE
+                        mode = args.view or (dv.views.SLICES if x > ms
                                              else dv.views.GALLERY)
                         if mode == dv.views.SLICES:
                             view = emv.ViewsFactory.createSlicesView(files,
@@ -427,15 +329,18 @@ if __name__ == '__main__':
             view.show()
 
     except Exception as ex:
-        showMsgBox("Can't perform the action", qtw.QMessageBox.Critical, str(ex))
+        showMsgBox("Can't perform the action", qtw.QMessageBox.Critical,
+                   str(ex))
         print(traceback.format_exc())
         sys.exit(0)
     except RuntimeError as ex:
-        showMsgBox("Can't perform the action", qtw.QMessageBox.Critical, str(ex))
+        showMsgBox("Can't perform the action", qtw.QMessageBox.Critical,
+                   str(ex))
         print(traceback.format_exc())
         sys.exit(0)
     except ValueError as ex:
-        showMsgBox("Can't perform the action", qtw.QMessageBox.Critical, str(ex))
+        showMsgBox("Can't perform the action", qtw.QMessageBox.Critical,
+                   str(ex))
         print(traceback.format_exc())
         sys.exit(0)
 

@@ -16,9 +16,15 @@ class TestRoiMaskListView(dv.tests.TestView):
         ]
 
     def createView(self):
+        maskParams = {
+            'type': dv.views.CIRCLE_ROI,
+            'color': '#154BBC23',
+            'data': 500,
+            'showHandles': True
+        }
         return dv.views.ImageMaskListView(
             None, emv.ModelsFactory.createListModel(self.getDataPaths()),
-            maskColor='#154BBC23', mask=dv.views.CIRCLE_ROI, maskSize=500)
+            maskParams=maskParams)
 
 
 if __name__ == '__main__':

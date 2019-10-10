@@ -44,14 +44,20 @@ class ModelsFactory:
         return model
 
     @classmethod
-    def createPickerModel(cls, files, boxsize):
-        """ Create the PickerDataModel from the given list of files
-         files:    (list) The list of files
-         boxsize:  (int) The box size
-         """
+    def createPickerModel(cls, files=None, boxSize=50, sources=None,
+                          parseCoordFunc=None):
+        """
+        Create the PickerDataModel from the given list of files
+
+        :param files:   (list) The list of files
+        :param boxsize: (int) The box size
+        :param sources: (dict) Each element is (mic-path, coord-path)
+        :param parseCoordFunc: The parser function for coordinates file
+        :return: (PickerDataModel)
+        """
         model = EmPickerDataModel()
 
-        if isinstance(files, list):
+        if files and isinstance(files, list):
             for f in files:
                 if not Path.exists(f):
                     raise Exception("Input file '%s' does not exists. " % f)
@@ -60,8 +66,16 @@ class ModelsFactory:
                 else:
                     raise Exception('Directories are not supported for '
                                     'picker model.')
+        elif sources is not None:
+            for micPath, coordPath in sources.values():
+                if parseCoordFunc and coordPath:
+                    coords = parseCoordFunc(coordPath)
+                else:
+                    coords = None
+                mic = models.Micrograph(-1, micPath, coords)
+                model.addMicrograph(mic)
 
-        model.setBoxSize(boxsize)
+        model.setBoxSize(boxSize)
         return model
 
     @classmethod
