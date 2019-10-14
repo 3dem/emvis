@@ -39,10 +39,14 @@ class ViewsFactory:
     def createPickerView(micFiles, **kwargs):
         """
         Create an PickerView
-        :param files: (list) Micrograph paths or None
+        :param files: (list) Micrograph paths or None.
         :param kwargs:
            - boxSize:  (int) The box size. Default value is 100
+           - sources: (dict) Each element is (mic-path, coord-path)
+           - parseCoordFunc: The parser function for coordinates file
         """
-        model = ModelsFactory.createPickerModel(micFiles,
-                                                kwargs.get('boxSize', 100))
+        model = ModelsFactory.createPickerModel(
+            files=micFiles, boxSize=kwargs.get('boxSize', 100),
+            sources=kwargs.get('sources'),
+            parseCoordFunc=kwargs.get('parseCoordFunc'))
         return datavis.views.PickerView(None, model=model, **kwargs)

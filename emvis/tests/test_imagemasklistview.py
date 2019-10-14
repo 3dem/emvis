@@ -22,9 +22,14 @@ class TestImageMaskListView(dv.tests.TestView):
         for i in range(300, 600):
             for j in range(300, 600):
                 mask[i][j] = 1
+        maskParams = {
+            'type': dv.views.DATA,
+            'color': '#334BBC23',
+            'data': mask
+        }
         return dv.views.ImageMaskListView(
             None, emv.ModelsFactory.createListModel(self.getDataPaths()),
-            maskColor='#334BBC23', mask=mask)
+            maskParams=maskParams)
 
 
 if __name__ == '__main__':
