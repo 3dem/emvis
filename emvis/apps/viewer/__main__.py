@@ -255,8 +255,7 @@ if __name__ == '__main__':
                 raise Exception("Input file '%s' does not exists. " % files)
 
             if os.path.isdir(files):
-                kwargs['rootPath'] = qtc.QDir.homePath()
-                kwargs['selectedPath'] = files
+                kwargs['rootPath'] = files
                 kwargs['mode'] = dv.widgets.TreeModelView.DIR_MODE
 
                 view = emv.EmBrowser(**kwargs)
