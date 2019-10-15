@@ -94,9 +94,12 @@ class TestPickerView(dv.tests.TestView):
 if __name__ == '__main__':
     n = len(sys.argv)
 
-    if n != 4:
+    defaultMics = 'Select/job005/micrographs_selected.star'
+    defaultMovs = 'AutoPick/LoG_based/Movies'
+
+    if n < 2:
         raise Exception(
-            "Expecting only two arguments: PROJECT_PATH MICROGRAPHS_STAR COORDINATES_PATH \n\n"
+            "Expecting only two arguments: PROJECT_PATH [MICROGRAPHS_STAR COORDINATES_PATH] \n\n"
             "Where: \n"
             "   PROJECT_PATH: Project path, root of all other inputs are found. \n"
             "   MICROGRAPHS_STAR: Star file with micrographs. \n"
@@ -104,10 +107,10 @@ if __name__ == '__main__':
             "Example: \n"
             "   python datavis/tests/test_picking_relion.py "
             "/Users/josem/work/data/relion30_tutorial_precalculated_results/ "
-            "AutoPick/LoG_based/Movies")
+            "%s %s " % (defaultMics, defaultMovs))
 
     projectFolder = sys.argv[1]
-    micStar = sys.argv[2]
-    pickingFolder = sys.argv[3]
+    micStar = sys.argv[2] if n > 2 else defaultMics
+    pickingFolder = sys.argv[3] if n > 3 else defaultMovs
 
     TestPickerView(projectFolder, micStar, pickingFolder).runApp()
