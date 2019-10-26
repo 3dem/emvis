@@ -1,9 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datavis as dv
+
 from datavis.models import Coordinate, Micrograph
+from ._empath import EmPath
 
 MOVIE_SIZE = 1000
+
+HIGHLIGHTER = {
+    EmPath.EXT_PY: dv.widgets.PythonHighlighter,
+    EmPath.EXT_JSON: dv.widgets.JsonSyntaxHighlighter
+}
+
+
+def getHighlighterClass(extType):
+    return HIGHLIGHTER.get(extType, None)
 
 
 # FIXME: Check if this classes is needed?

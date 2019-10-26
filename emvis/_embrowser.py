@@ -6,7 +6,7 @@ import datavis as dv
 from ._models_factory import ModelsFactory
 from ._image_manager import ImageManager
 from ._empath import EmPath
-from .utils import MOVIE_SIZE
+from .utils import MOVIE_SIZE, getHighlighterClass
 
 
 class EmBrowser(dv.widgets.FileBrowser):
@@ -17,6 +17,9 @@ class EmBrowser(dv.widgets.FileBrowser):
         :param kwargs: See dv.widgets.FileBrowser params
         """
         dv.widgets.FileBrowser.__init__(self, **kwargs)
+
+        self._lines = kwargs.get('textLines', 100)
+
         self._dataView.sigCurrentTableChanged.connect(
             self.__onDataViewTableChanged)
 
@@ -83,6 +86,10 @@ class EmBrowser(dv.widgets.FileBrowser):
         """ Show the dv.views.SlicesView component """
         self._stackLayout.setCurrentWidget(self._slicesView)
 
+    def __showTextView(self):
+        """ Show the TextView component """
+        self._stackLayout.setCurrentWidget(self._textView)
+
     def __showEmptyWidget(self):
         """Show an empty widget"""
         self._stackLayout.setCurrentWidget(self._emptyWidget)
@@ -92,12 +99,17 @@ class EmBrowser(dv.widgets.FileBrowser):
 
         self._dataView = dv.views.DataView(
             viewPanel, model=dv.models.EmptyTableModel(), **kwargs)
+
         self._imageView = dv.views.ImageView(viewPanel, **kwargs)
+
         self._slicesView = dv.views.SlicesView(
             viewPanel, dv.models.EmptySlicesModel(), **kwargs)
 
         self._volumeView = dv.views.VolumeView(
             parent=viewPanel, model=dv.models.EmptyVolumeModel(), **kwargs)
+
+        self._textView = dv.widgets.TextView(viewPanel)
+
         self._emptyWidget = qtw.QWidget(parent=viewPanel)
 
         layout = qtw.QHBoxLayout(viewPanel)
@@ -106,6 +118,7 @@ class EmBrowser(dv.widgets.FileBrowser):
         self._stackLayout.addWidget(self._dataView)
         self._stackLayout.addWidget(self._imageView)
         self._stackLayout.addWidget(self._slicesView)
+        self._stackLayout.addWidget(self._textView)
         self._stackLayout.addWidget(self._emptyWidget)
 
         return viewPanel
@@ -116,8 +129,9 @@ class EmBrowser(dv.widgets.FileBrowser):
 
     def showFile(self, imagePath):
         """
-        This method display an image using of pyqtgraph dv.views.ImageView, a volume
-        using the VOLUME-SLICER or dv.views.GALLERY-VIEW components, a image stack or
+        This method display an image using of pyqtgraph dv.views.ImageView,
+        a volume using the VOLUME-SLICER or dv.views.GALLERY-VIEW components,
+        a image stack or
         a Table characteristics.
 
         pageBar provides:
@@ -182,6 +196,22 @@ class EmBrowser(dv.widgets.FileBrowser):
                         self._slicesView.setModel(model)
                         self.__showSlicesView()
                     # TODO Show the image type
+            elif EmPath.isTextFile(imagePath):
+                extType = EmPath.getExtType(imagePath)
+                cl = getHighlighterClass(extType)
+                h = cl(None) if cl is not None else None
+                self._textView.setHighlighter(h)
+                info['Type'] = 'TEXT FILE'
+                self._textView.setPlainText("")
+                with open(imagePath) as f:
+                    for _ in range(int(self._lines/2)):
+                        l = f.readline()
+                        if l:
+                            self._textView.appendPlainText(l)
+                    if f.readline():
+                        self._textView.appendHtml(
+                            "<b>*** First %d lines ***</b>" % self._lines)
+                self.__showTextView()
             else:
                 self.__showEmptyWidget()
                 info.clear()
@@ -208,3 +238,4 @@ class EmBrowser(dv.widgets.FileBrowser):
         model = self._treeModelView.model()
         path = model.filePath(index)
         self.showFile(path)
+

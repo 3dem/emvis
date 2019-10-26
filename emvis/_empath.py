@@ -11,6 +11,9 @@ class EmPath:
     EXT_STACK = 2
     EXT_TABLE = 3
     EXT_STD_IMAGE = 4  # Standard image extensions
+    EXT_TEXT = 5
+    EXT_PY = 6
+    EXT_JSON = 7
 
     EXTESIONS_MAP = {
         EXT_IMAGE: ['.mrc', '.spi', '.xmp', '.hed', '.img', '.dm3', '.dm4',
@@ -18,7 +21,10 @@ class EmPath:
         EXT_VOLUME: ['.mrc', '.vol', '.map'],
         EXT_STACK: ['.mrc', '.mrcs', '.stk', '.dm3', '.dm4', '.dat'],
         EXT_TABLE: ['.star', '.xmd', '.sqlite'],
-        EXT_STD_IMAGE: ['.png', '.jpg', '.jpeg', '.tif', '.bmp']
+        EXT_STD_IMAGE: ['.png', '.jpg', '.jpeg', '.tif', '.bmp'],
+        EXT_PY: ['.py'],
+        EXT_JSON: ['.json'],
+        EXT_TEXT: ['.txt', '.pos', '.bild', '.log', '.rst', '.py', '.json']
     }
 
     @classmethod
@@ -61,3 +67,22 @@ class EmPath:
     def isStandardImage(cls, path):
         return cls.__isFile(path, cls.EXT_STD_IMAGE)
 
+    @classmethod
+    def isTextFile(cls, path):
+        return cls.__isFile(path, cls.EXT_TEXT)
+
+    @classmethod
+    def isJsonFile(cls, path):
+        return cls.__isFile(path, cls.EXT_JSON)
+
+    @classmethod
+    def isPyFile(cls, path):
+        return cls.__isFile(path, cls.EXT_PY)
+
+    @classmethod
+    def getExtType(cls, path):
+        ext = cls.getExt(path)
+        for k in cls.EXTESIONS_MAP:
+            if any(ext == e for e in cls.EXTESIONS_MAP.get(k)):
+                return k
+        return None
