@@ -63,7 +63,7 @@ class TestImageModels(dv.tests.TestBase):
         _check(volModel)
         sliceModel = volModel.getSlicesModel(dv.models.AXIS_Z)
         _check(sliceModel)
-        imageModel = volModel.getSliceImageModel(0, dv.models.AXIS_Z)
+        imageModel = volModel.getSliceImageModel(dv.models.AXIS_Z, 0)
         self.assertEqual(imageModel.getDim(), (300, 300))
 
         volModel.setData(None)
