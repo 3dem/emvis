@@ -12,7 +12,7 @@ from datavis.views import TableModel
 
 testDataPath = os.environ.get("EM_TEST_DATA", None)
 
-print("hasImpl('star'): ", emc.TableIO.hasImpl('star'))
+print("hasImpl('star'): ", emc.TableFile.hasImpl('star'))
 
 if testDataPath is not None:
     # use the code below when yue have a properly configured environment
@@ -21,7 +21,7 @@ if testDataPath is not None:
     print("Reading star: ", fn1)
 
     t = emc.Table()
-    tio = emc.TableIO()
+    tio = emc.TableFile()
     tio.open(fn1)
     tio.read("images", t)
     tio.close()

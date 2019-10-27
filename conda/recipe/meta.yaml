@@ -1,0 +1,43 @@
+{% set name = "emvis" %}
+{% set version = "0.0.2" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  #url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  #sha256: "747a5557a90daf3de1d9c25b467edf7d6bbd07d9efdecbb15e8474ec05acff3a"
+  path: ../../../emvis
+
+
+build:
+  number: 0
+  script: "python -m pip install . --no-deps --ignore-installed -vv "
+
+requirements:
+  host:
+    - datavis
+    - emcore
+    - scipy
+  run:
+    - datavis
+    - emcore
+    - scipy
+
+test:
+  imports:
+    - emvis
+
+about:
+  home: "https://github.com/3dem/emvis"
+  license: "GNU General Public v3 (GPLv3)"
+  license_family: "GPL3"
+  license_file: ""
+  summary: "Visualization tools for EM data analysis"
+  doc_url: ""
+  dev_url: ""
+
+extra:
+  recipe-maintainers:
+    - delarosatrevin

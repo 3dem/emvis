@@ -39,7 +39,7 @@ class EmTableModel(models.TableModel):
             tableName = ''
             self._path = None
             self._tableNames = [tableName]
-        else:  # In this variant we will create a emc.TableIO to read data
+        else:  # In this variant we will create a emc.TableFile to read data
             if isinstance(tableSource, py23.str):
                 self._path, tableName = tableSource, None
             elif isinstance(tableSource, tuple):
@@ -47,7 +47,7 @@ class EmTableModel(models.TableModel):
             else:
                 raise Exception("Invalid tableSource input '%s' (type %s)"
                                 % (tableSource, type(tableSource)))
-            self._tableIO = emc.TableIO()
+            self._tableIO = emc.TableFile()
             self._tableIO.open(self._path, emc.File.Mode.READ_ONLY)
             self._table = emc.Table()
             self._tableNames = self._tableIO.getTableNames()
@@ -72,7 +72,7 @@ class EmTableModel(models.TableModel):
                          for i, c in enumerate(self._table.iterColumns())}
 
     def _loadTable(self, tableName):
-        # Only really load table if we have created the emc.TableIO
+        # Only really load table if we have created the emc.TableFile
         if self._tableIO is not None:
             self._tableIO.read(tableName, self._table)
         self.__updateColsMap()
