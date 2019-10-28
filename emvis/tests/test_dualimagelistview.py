@@ -97,7 +97,7 @@ class TestDualImageListView(dv.tests.TestView):
             }
         ]
         return dv.views.DualImageListView(
-            None, emv.ModelsFactory.createListModel(self.getDataPaths()),
+            emv.ModelsFactory.createListModel(self.getDataPaths()),
             options=tool_params1, method=printFunc)
 
 

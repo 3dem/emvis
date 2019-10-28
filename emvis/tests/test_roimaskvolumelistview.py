@@ -41,7 +41,7 @@ class TestRoiMaskVolumeListView(dv.tests.TestView):
                 'imageViewKwargs': {'maskParams': maskParams}}
         }
         return dv.views.VolumeListView(
-            None, emv.ModelsFactory.createListModel(self.getDataPaths()),
+            emv.ModelsFactory.createListModel(self.getDataPaths()),
             slicesKwargs=slicesKwargs, slicesMode=self._mode)
 
 

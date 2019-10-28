@@ -23,7 +23,7 @@ class TestRoiMaskListView(dv.tests.TestView):
             'showHandles': True
         }
         return dv.views.ImageMaskListView(
-            None, emv.ModelsFactory.createListModel(self.getDataPaths()),
+            emv.ModelsFactory.createListModel(self.getDataPaths()),
             maskParams=maskParams)
 
 
