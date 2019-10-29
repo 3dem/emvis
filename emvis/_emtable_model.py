@@ -42,12 +42,16 @@ class EmTableModel(dv.models.TableModel):
             self._tableNames = [tableName]
         else:  # In this variant we will create a emc.TableFile to read data
             if isinstance(tableSource, py23.str):
-                self._path, tableName = tableSource, None
+                if '@' in tableSource:
+                    tableName, path = tableSource.split('@')
+                else:
+                    tableName, path = None, tableSource
             elif isinstance(tableSource, tuple):
-                self._path, tableName = tableSource
+                path, tableName = tableSource
             else:
                 raise Exception("Invalid tableSource input '%s' (type %s)"
                                 % (tableSource, type(tableSource)))
+            self._path = os.path.abspath(path)
             self._tableIO = emc.TableFile()
             self._tableIO.open(self._path, emc.File.Mode.READ_ONLY)
             self._table = emc.Table()
@@ -106,7 +110,6 @@ class EmTableModel(dv.models.TableModel):
         else:
             imgPrefix = self._imagePrefixes.get(
                 col, self._imageManager.findImagePrefix(value, self._path))
-            print("Finding image prefix: ", imgPrefix)
             self._imagePrefixes[col] = imgPrefix
 
         if imgPrefix is not None:

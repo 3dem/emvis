@@ -68,8 +68,11 @@ class ImageManager:
             there is no need to prepend any value.
         """
         imgRef = cls.getRef(imageSource)
+        imgPath = imgRef.path
+        if ':' in imgPath:
+            imgPath = imgPath.split(':')[0]
 
-        if os.path.exists(imgRef.path):
+        if os.path.exists(imgPath):
             return ''  # There is no need for any prefix
 
         if os.path.isdir(rootPath):
@@ -78,7 +81,7 @@ class ImageManager:
             searchPath = os.path.dirname(rootPath)
 
         while searchPath and searchPath != '/':
-            if os.path.exists(os.path.join(searchPath, imgRef.path)):
+            if os.path.exists(os.path.join(searchPath, imgPath)):
                 return searchPath
             searchPath = os.path.dirname(searchPath)
 
@@ -101,11 +104,15 @@ class ImageManager:
         Return the imageRef and the imageIO.
         """
         imgRef = self.getRef(imgSource)
+        imgPath = imgRef.path
+        imgFormat = ''  # By default inferred from path
         # Let's keep open the file if possible, so we don't need
         # to re-open if in the next use it is the same file
-        if self._lastOpenedFile != imgRef.path:
+        if self._lastOpenedFile != imgPath:
             self._imgIO.close()
-            self._imgIO.open(imgRef.path, emc.File.READ_ONLY)
+            if ':' in imgPath:
+                imgPath, imgFormat = imgPath.split(':')
+            self._imgIO.open(imgPath, emc.File.READ_ONLY, imgFormat)
             self._lastOpenedFile = imgRef.path
         return imgRef, self._imgIO
 

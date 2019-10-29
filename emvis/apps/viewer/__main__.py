@@ -251,7 +251,7 @@ if __name__ == '__main__':
             else:
                 files = files[0]
 
-            if not os.path.exists(files):
+            if not emv.EmPath.exists(files):
                 raise Exception("Input file '%s' does not exists. " % files)
 
             if os.path.isdir(files):

@@ -86,3 +86,21 @@ class EmPath:
             if any(ext == e for e in cls.EXTESIONS_MAP.get(k)):
                 return k
         return None
+
+    @classmethod
+    def exists(cls, path):
+        """ Return True if the path exists, after removing special characters.
+
+        Special characters are:
+
+        * @ that is used to name a table in a file, e.g particles@file.star
+        * : that is used to specify format, e.g estimated_psd.ctf:mrc
+        """
+        if '@' in path:
+            path = path.split('@')[1]
+
+        if ':' in path:
+            path = path.split(':')[0]
+
+        return os.path.exists(path)
+
