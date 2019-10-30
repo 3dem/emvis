@@ -17,7 +17,7 @@ class TestMultiSliceView(dv.tests.TestView):
 
     def createView(self):
         print("File: %s" % self._path)
-        volModel = emv.ModelsFactory.createVolumeModel(self._path)
+        volModel = emv.models.ModelsFactory.createVolumeModel(self._path)
         msv = dv.views.MultiSliceView(
             None, {axis: {'model': volModel.getSlicesModel(axis),
                           'normalize': True}

@@ -17,13 +17,13 @@ class TestSlicesView(dv.tests.TestView):
 
     def createView(self):
         print("File: %s" % self._path)
-        x, y, z, n = emv.ImageManager().getDim(self._path)
+        x, y, z, n = emv.utils.ImageManager().getDim(self._path)
         if z > 1:
-            model = emv.ModelsFactory.createVolumeModel(self._path)
+            model = emv.models.ModelsFactory.createVolumeModel(self._path)
             text = "Volume, Z slice: "
             value = z / 2
         elif n > 1:
-            model = emv.ModelsFactory.createStackModel(self._path)
+            model = emv.models.ModelsFactory.createStackModel(self._path)
             text = "Stack, image number: "
             value = 1
         else:

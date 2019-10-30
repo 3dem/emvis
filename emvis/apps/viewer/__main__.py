@@ -239,7 +239,7 @@ if __name__ == '__main__':
             if files and files[0] == str(os.getcwd()):
                 files = None
             kwargs['selectionMode'] = dv.views.PagingView.SINGLE_SELECTION
-            view = emv.ViewsFactory.createPickerView(
+            view = emv.views.ViewsFactory.createPickerView(
                 files, sources=args.picker, parseCoordFunc=parsePickCoordinates,
                 **kwargs)
             view.setWindowTitle("EM-PICKER")
@@ -251,15 +251,15 @@ if __name__ == '__main__':
             else:
                 files = files[0]
 
-            if not emv.EmPath.exists(files):
+            if not emv.utilsPath.exists(files):
                 raise Exception("Input file '%s' does not exists. " % files)
 
             if os.path.isdir(files):
                 kwargs['rootPath'] = files
                 kwargs['mode'] = dv.widgets.TreeModelView.DIR_MODE
 
-                view = emv.EmBrowser(**kwargs)
-            elif emv.EmPath.isTable(files):  # Display the file as a Table:
+                view = emv.views.EmBrowser(**kwargs)
+            elif emv.utilsPath.isTable(files):  # Display the file as a Table:
                 if not args.view == dv.views.SLICES:
                     if args.visible or args.render:
                         # FIXME[phv] create the TableConfig
@@ -270,17 +270,17 @@ if __name__ == '__main__':
                         # FIXME[phv] sort by the given column
                         pass
                     kwargs['view'] = args.view or dv.views.COLUMNS
-                    view = emv.ViewsFactory.createDataView(files, **kwargs)
+                    view = emv.views.ViewsFactory.createDataView(files, **kwargs)
                     fitViewSize(view, d)
                 else:
                     raise Exception("Invalid display mode for table: '%s'"
                                     % args.view)
-            elif emv.EmPath.isData(files):
+            elif emv.utilsPath.isData(files):
                 # *.mrc may be image, stack or volume. Ask for dim.n
-                x, y, z, n = emv.ImageManager().getDim(files)
+                x, y, z, n = emv.utils.ImageManager().getDim(files)
                 if n == 1:  # Single image or volume
                     if z == 1:  # Single image
-                        view = emv.ViewsFactory.createImageView(files, **kwargs)
+                        view = emv.views.ViewsFactory.createImageView(files, **kwargs)
                     else:  # Volume
                         mode = args.view or dv.views.SLICES
                         if mode == dv.views.SLICES or mode == dv.views.GALLERY:
@@ -288,7 +288,7 @@ if __name__ == '__main__':
                             kwargs['axis'] = False
                             sm = dv.views.PagingView.SINGLE_SELECTION
                             kwargs['selectionMode'] = sm
-                            view = emv.ViewsFactory.createVolumeView(files,
+                            view = emv.views.ViewsFactory.createVolumeView(files,
                                                                      **kwargs)
                         else:
                             raise Exception("Invalid display mode for volume")
@@ -300,25 +300,25 @@ if __name__ == '__main__':
                         if mode == dv.views.SLICES:
                             kwargs['toolBar'] = False
                             kwargs['axis'] = False
-                            view = emv.ViewsFactory.createVolumeView(files,
+                            view = emv.views.ViewsFactory.createVolumeView(files,
                                                                      **kwargs)
                         else:
                             kwargs['view'] = dv.views.GALLERY
-                            view = emv.ViewsFactory.createDataView(files,
+                            view = emv.views.ViewsFactory.createDataView(files,
                                                                    **kwargs)
                     else:
                         ms = dv.views.MOVIE_SIZE
                         mode = args.view or (dv.views.SLICES if x > ms
                                              else dv.views.GALLERY)
                         if mode == dv.views.SLICES:
-                            view = emv.ViewsFactory.createSlicesView(files,
+                            view = emv.views.ViewsFactory.createSlicesView(files,
                                                                      **kwargs)
                         else:
                             kwargs['view'] = mode
-                            view = emv.ViewsFactory.createDataView(files,
+                            view = emv.views.ViewsFactory.createDataView(files,
                                                                    **kwargs)
-            elif emv.EmPath.isStandardImage(files):
-                view = emv.ViewsFactory.createImageView(files, **kwargs)
+            elif emv.utilsPath.isStandardImage(files):
+                view = emv.views.ViewsFactory.createImageView(files, **kwargs)
             else:
                 view = None
                 raise Exception("Can't perform a view for this file.")

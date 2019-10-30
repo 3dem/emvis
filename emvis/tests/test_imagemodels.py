@@ -21,7 +21,7 @@ class TestImageModels(dv.tests.TestBase):
         row = table[0]
         imgPath = str(row['rlnImageName'])
 
-        im = emv.ImageManager()
+        im = emv.utils.ImageManager()
         realPath = imgPath.split('@')[1]
         imgPrefix = im.findImagePrefix(realPath, tableFn)
         self.assertEqual(imgPrefix, expectedPrefix)
@@ -32,7 +32,7 @@ class TestImageModels(dv.tests.TestBase):
         print("Checking %s" % micName)
 
         imageModel = dv.models.ImageModel(
-            data=emv.ImageManager().getData(micName))
+            data=emv.utils.ImageManager().getData(micName))
         minValue, maxValue = imageModel.getMinMax()
 
         self.assertEqual(imageModel.getDim(), (9216, 9441))
@@ -51,7 +51,7 @@ class TestImageModels(dv.tests.TestBase):
         print("Checking %s" % volName)
 
         volModel = dv.models.VolumeModel(
-            data=emv.ImageManager().getData(volName))
+            data=emv.utils.ImageManager().getData(volName))
         minValue, maxValue = volModel.getMinMax()
 
         def _check(model):

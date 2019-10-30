@@ -4,8 +4,8 @@ import numpy as np
 
 import emcore as emc
 import datavis.models as models
-from ._empath import EmPath
-from ._emtype import EmType
+
+from ..utils import EmPath, EmType
 from ._emtable_model import (EmTableModel, EmStackModel, EmVolumeModel,
                              EmListModel)
 from ._empicker import EmPickerModel

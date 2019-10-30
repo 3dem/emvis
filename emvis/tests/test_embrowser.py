@@ -16,7 +16,7 @@ class TestBrowser(dv.tests.TestView):
         return [qtc.QDir.homePath()]
 
     def createView(self):
-        return emv.EmBrowser(**self._kwargs)
+        return emv.views.EmBrowser(**self._kwargs)
 
 
 if __name__ == '__main__':

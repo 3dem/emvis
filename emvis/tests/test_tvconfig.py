@@ -35,7 +35,7 @@ if testDataPath is not None:
         "rlnNrOfSignificantSamples", "rlnMaxValueProbDistribution"
     ]
 
-    model = emv.ModelsFactory.createTableModel(fn1)
+    model = emv.models.ModelsFactory.createTableModel(fn1)
     tvc1 = dv.models.TableModel.fromTable(t)
     #print(tvc1)
 

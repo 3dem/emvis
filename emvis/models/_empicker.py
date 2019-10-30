@@ -1,7 +1,7 @@
 
 import datavis.models as models
 
-from ._image_manager import ImageManager
+from ..utils import ImageManager
 
 
 class EmPickerModel(models.PickerModel):

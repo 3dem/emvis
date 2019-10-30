@@ -60,7 +60,7 @@ class TestPickerView(dv.tests.TestView):
         coordTable = emc.Table()
         table.read(micsStarPath)
 
-        model = emv.EmPickerModel()
+        model = emv.utilsPickerModel()
         model.setBoxSize(64)
 
         def _getMicPath(micName):
@@ -76,9 +76,10 @@ class TestPickerView(dv.tests.TestView):
         for i, row in enumerate(table):
             micPath = _getMicPath(str(row['rlnMicrographName']))
             mic = dv.models.Micrograph(i + 1, micPath)
-            micCoordsFn = os.path.join(
-                pickingPath,
-                os.path.basename(micPath).replace(".mrc", "_autopick.star"))
+            micBase = os.path.basename(micPath).replace(".mrc",
+                                                        "_autopick.star")
+            micCoordsFn = os.path.join(pickingPath, micBase)
+
             if os.path.exists(micCoordsFn):
                 coordTable.read(micCoordsFn)
                 for coordRow in coordTable:

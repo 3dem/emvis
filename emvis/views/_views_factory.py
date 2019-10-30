@@ -1,7 +1,7 @@
 
 import datavis.views
 
-from ._models_factory import ModelsFactory
+from ..models import ModelsFactory
 
 
 class ViewsFactory:

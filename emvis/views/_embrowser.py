@@ -3,10 +3,8 @@ import PyQt5.QtWidgets as qtw
 
 import datavis as dv
 
-from ._models_factory import ModelsFactory
-from ._image_manager import ImageManager
-from ._empath import EmPath
-from .utils import MOVIE_SIZE, getHighlighterClass
+from ..utils import MOVIE_SIZE, getHighlighterClass, EmPath, ImageManager
+from ..models import ModelsFactory
 
 
 class EmBrowser(dv.widgets.FileBrowser):

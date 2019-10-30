@@ -150,7 +150,7 @@ qapp = QtWidgets.QApplication(sys.argv)
 
 data = [random.random() for i in range(25)]
 
-tableModel = emv.ModelsFactory.createTableModel(path)
+tableModel = emv.models.ModelsFactory.createTableModel(path)
 tableViewConfig = tableModel.createDefaultConfig()
 #  We could pass the table instead of random data, but this is a test app.
 #  Modify according to what you need

@@ -17,7 +17,7 @@ class TestDataView(dv.tests.TestView):
     def createView(self):
         print("File: %s" % self._path)
         return dv.views.DataView(
-            model=emv.ModelsFactory.createTableModel(self._path))
+            model=emv.models.ModelsFactory.createTableModel(self._path))
 
 
 if __name__ == '__main__':

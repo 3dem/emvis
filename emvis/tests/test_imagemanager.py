@@ -22,7 +22,7 @@ class TestImageManager(dv.tests.TestBase):
         row = table[0]
         imgPath = str(row['rlnImageName'])
 
-        im = emv.ImageManager()
+        im = emv.utils.ImageManager()
         realPath = imgPath.split('@')[1]
         imgPrefix = im.findImagePrefix(realPath, tableFn)
         self.assertEqual(imgPrefix, expectedPrefix)

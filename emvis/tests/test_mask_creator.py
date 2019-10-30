@@ -21,7 +21,7 @@ class TestMaskCreator(dv.tests.TestView):
     def createView(self):
         imageView = dv.views.ImageView(parent=None, border_color='#FFAA33',
                                        maskParams=self._maskParams)
-        imgModel = emv.ModelsFactory.createImageModel(self._path)
+        imgModel = emv.models.ModelsFactory.createImageModel(self._path)
         imageView.setModel(imgModel)
         dim_x, dim_y = imgModel.getDim()
         index, path = imgModel.getLocation()

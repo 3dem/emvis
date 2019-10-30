@@ -18,7 +18,7 @@ class TestVolumeView(dv.tests.TestView):
     def createView(self):
         print("File: %s" % self._path)
         self._path = self.getDataPaths()[0]
-        volModel = emv.ModelsFactory.createVolumeModel(self._path)
+        volModel = emv.models.ModelsFactory.createVolumeModel(self._path)
         return dv.views.VolumeView(None,
                                    model=volModel,
                                    toolBar=True,

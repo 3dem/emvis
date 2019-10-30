@@ -24,7 +24,7 @@ class TestEmTableModel(dv.tests.TestBase):
     def test_getTableNames(self):
         path = self.getDataPaths()[0]
         print("\nTest file: \n   ", path, "\n")
-        model = emv.ModelsFactory.createTableModel(path)
+        model = emv.models.ModelsFactory.createTableModel(path)
 
         tableNames = model.getTableNames()
         print("Table names: ", tableNames)

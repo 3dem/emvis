@@ -19,7 +19,7 @@ class TestVolumeListView(dv.tests.TestView):
 
     def createView(self):
         return dv.views.VolumeListView(
-            emv.ModelsFactory.createListModel(self.getDataPaths()))
+            emv.models.ModelsFactory.createListModel(self.getDataPaths()))
 
 
 if __name__ == '__main__':

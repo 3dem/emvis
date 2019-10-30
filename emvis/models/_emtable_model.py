@@ -6,9 +6,7 @@ import datavis as dv
 from datavis.utils import py23
 import emcore as emc
 
-from ._image_manager import ImageManager, ImageRef
-from ._emtype import EmType
-from ._empath import EmPath
+from ..utils import EmType, EmPath, ImageManager, ImageRef
 
 
 class EmTableModel(dv.models.TableModel):

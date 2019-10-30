@@ -16,7 +16,7 @@ class TestImageListView(dv.tests.TestView):
 
     def createView(self):
         return dv.views.ImageListView(
-            emv.ModelsFactory.createTableModel(self.getDataPaths()[0]))
+            emv.models.ModelsFactory.createTableModel(self.getDataPaths()[0]))
 
 
 if __name__ == '__main__':
