@@ -13,5 +13,5 @@ from ._models_factory import ModelsFactory
 from ._views_factory import ViewsFactory
 from .utils import ImageElemParser, MOVIE_SIZE, getHighlighterClass
 from ._emtable_model import EmTableModel, EmStackModel, EmVolumeModel
-from ._empicker import EmPickerDataModel
+from ._empicker import EmPickerModel
 from ._embrowser import *

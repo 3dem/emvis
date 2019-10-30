@@ -8,7 +8,7 @@ from ._empath import EmPath
 from ._emtype import EmType
 from ._emtable_model import (EmTableModel, EmStackModel, EmVolumeModel,
                              EmListModel)
-from ._empicker import EmPickerDataModel
+from ._empicker import EmPickerModel
 
 
 class ModelsFactory:
@@ -47,15 +47,15 @@ class ModelsFactory:
     def createPickerModel(cls, files=None, boxSize=50, sources=None,
                           parseCoordFunc=None):
         """
-        Create the PickerDataModel from the given list of files
+        Create the PickerModel from the given list of files
 
         :param files:   (list) The list of files
         :param boxsize: (int) The box size
         :param sources: (dict) Each element is (mic-path, coord-path)
         :param parseCoordFunc: The parser function for coordinates file
-        :return: (PickerDataModel)
+        :return: (PickerModel)
         """
-        model = EmPickerDataModel()
+        model = EmPickerModel()
 
         if files and isinstance(files, list):
             for f in files:

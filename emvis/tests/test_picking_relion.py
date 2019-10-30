@@ -60,7 +60,7 @@ class TestPickerView(dv.tests.TestView):
         coordTable = emc.Table()
         table.read(micsStarPath)
 
-        model = emv.EmPickerDataModel()
+        model = emv.EmPickerModel()
         model.setBoxSize(64)
 
         def _getMicPath(micName):

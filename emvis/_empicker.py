@@ -4,11 +4,11 @@ import datavis.models as models
 from ._image_manager import ImageManager
 
 
-class EmPickerDataModel(models.PickerDataModel):
+class EmPickerModel(models.PickerModel):
     """ Em picker data model with direct access to ImageManager """
 
     def __init__(self, imageManager=None):
-        models.PickerDataModel.__init__(self)
+        models.PickerModel.__init__(self)
         self._imageManager = imageManager or ImageManager()
         self._cache = {}
 
