@@ -27,9 +27,13 @@ class ModelsFactory:
     @classmethod
     def createTableModel(cls, path):
         """
-        Creates an TableModel reading path as an emc.Table
-        :param path: (str) The table path
-        :return:     TableModel
+        Creates an `TableModel <datavis.models.TableModel>` reading path as an
+        emc.Table.
+
+        Args:
+            path: (str) The table path
+
+        Returns:  `TableModel <datavis.models.TableModel>`
         """
         if EmPath.isTable(path):
             model = EmTableModel(path)
@@ -47,13 +51,19 @@ class ModelsFactory:
     def createPickerModel(cls, files=None, boxSize=50, sources=None,
                           parseCoordFunc=None):
         """
-        Create the PickerModel from the given list of files
+        Create the `PickerModel <datavis.models.PickerModel>` from the given
+        list of files. You can pass the function responsible for parsing
+        the coordinate files. This function should return an iterable object
+        over the coordinate list.
 
-        :param files:   (list) The list of files
-        :param boxsize: (int) The box size
-        :param sources: (dict) Each element is (mic-path, coord-path)
-        :param parseCoordFunc: The parser function for coordinates file
-        :return: (PickerModel)
+        Args:
+            files:   (list) The list of files
+            boxsize: (int) The box size
+            sources: (dict) Each element is (mic-path, coord-path)
+            parseCoordFunc: The parser function for coordinates file
+
+        Returns:
+            A :class:`PickerModel <datavis.models.PickerModel>` instance
         """
         model = EmPickerModel()
 
@@ -62,7 +72,7 @@ class ModelsFactory:
                 if not Path.exists(f):
                     raise Exception("Input file '%s' does not exists. " % f)
                 if not Path.isdir(f):
-                    model.addMicrograph(models.Micrograph(-1, f))
+                    model.addMicrograph(models.Micrograph(None, f))
                 else:
                     raise Exception('Directories are not supported for '
                                     'picker model.')
@@ -72,8 +82,11 @@ class ModelsFactory:
                     coords = parseCoordFunc(coordPath)
                 else:
                     coords = None
-                mic = models.Micrograph(-1, micPath, coords)
+
+                mic = models.Micrograph(None, micPath)
                 model.addMicrograph(mic)
+                if coords:
+                    model.addCoordinates(mic.getId(), coords)
 
         model.setBoxSize(boxSize)
         return model
@@ -81,11 +94,13 @@ class ModelsFactory:
     @classmethod
     def createEmptyTableModel(cls, columns=[]):
         """
-        Creates an TableModel, initializing the table header from the given
-        ColumnInfo list
-        :param columns:  (list) List of ColumnInfo for table header
-                                initialization
-        :return: TableModel
+        Creates an TableModel instance, initializing the table header from the
+        given ColumnInfo list
+
+        Args:
+            columns:  (list) List of ColumnInfo for table header initialization
+        Returns:
+            A :class:`TableModel <datavis.models.TableModel>` instance
         """
         Column = emc.Table.Column
         cols = []
@@ -101,16 +116,22 @@ class ModelsFactory:
     @classmethod
     def createStackModel(cls, path):
         """
-        Creates an TableModel reading stack from the given path
-        :param path: (str) The stack path
+        Creates an `TableModel <datavis.models.TableModel>` reading stack from
+        the given path.
+
+        Args:
+            path: (str) The stack path
         """
         return EmStackModel(path)
 
     @classmethod
     def createVolumeModel(cls, path):
         """
-        Creates an VolumeModel reading image data from the given path
-        :param path: (str) The volume path
+        Creates an `VolumeModel <datavis.models.VolumeModel>` reading image data
+        from the given path.
+
+        Args:
+            path: (str) The volume path
         """
         return EmVolumeModel(path)
 

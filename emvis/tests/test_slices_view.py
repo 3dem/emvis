@@ -30,7 +30,7 @@ class TestSlicesView(dv.tests.TestView):
             raise Exception(
                 "Invalid input, it should be either volume or stack")
 
-        return dv.views.SlicesView(None, model, text=text, currentValue=value)
+        return dv.views.SlicesView(model, text=text, currentValue=value)
 
 
 if __name__ == '__main__':
