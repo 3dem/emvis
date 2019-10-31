@@ -251,7 +251,7 @@ if __name__ == '__main__':
             else:
                 files = files[0]
 
-            if not emv.utilsPath.exists(files):
+            if not emv.utils.EmPath.exists(files):
                 raise Exception("Input file '%s' does not exists. " % files)
 
             if os.path.isdir(files):
@@ -259,7 +259,7 @@ if __name__ == '__main__':
                 kwargs['mode'] = dv.widgets.TreeModelView.DIR_MODE
 
                 view = emv.views.EmBrowser(**kwargs)
-            elif emv.utilsPath.isTable(files):  # Display the file as a Table:
+            elif emv.utils.EmPath.isTable(files):  # Display the file as a Table
                 if not args.view == dv.views.SLICES:
                     if args.visible or args.render:
                         # FIXME[phv] create the TableConfig
@@ -270,17 +270,19 @@ if __name__ == '__main__':
                         # FIXME[phv] sort by the given column
                         pass
                     kwargs['view'] = args.view or dv.views.COLUMNS
-                    view = emv.views.ViewsFactory.createDataView(files, **kwargs)
+                    view = emv.views.ViewsFactory.createDataView(files,
+                                                                 **kwargs)
                     fitViewSize(view, d)
                 else:
                     raise Exception("Invalid display mode for table: '%s'"
                                     % args.view)
-            elif emv.utilsPath.isData(files):
+            elif emv.utils.EmPath.isData(files):
                 # *.mrc may be image, stack or volume. Ask for dim.n
                 x, y, z, n = emv.utils.ImageManager().getDim(files)
                 if n == 1:  # Single image or volume
                     if z == 1:  # Single image
-                        view = emv.views.ViewsFactory.createImageView(files, **kwargs)
+                        view = emv.views.ViewsFactory.createImageView(files,
+                                                                      **kwargs)
                     else:  # Volume
                         mode = args.view or dv.views.SLICES
                         if mode == dv.views.SLICES or mode == dv.views.GALLERY:
@@ -288,8 +290,8 @@ if __name__ == '__main__':
                             kwargs['axis'] = False
                             sm = dv.views.PagingView.SINGLE_SELECTION
                             kwargs['selectionMode'] = sm
-                            view = emv.views.ViewsFactory.createVolumeView(files,
-                                                                     **kwargs)
+                            view = emv.views.ViewsFactory.createVolumeView(
+                                files, **kwargs)
                         else:
                             raise Exception("Invalid display mode for volume")
                 else:  # Stack
@@ -300,24 +302,24 @@ if __name__ == '__main__':
                         if mode == dv.views.SLICES:
                             kwargs['toolBar'] = False
                             kwargs['axis'] = False
-                            view = emv.views.ViewsFactory.createVolumeView(files,
-                                                                     **kwargs)
+                            view = emv.views.ViewsFactory.createVolumeView(
+                                files, **kwargs)
                         else:
                             kwargs['view'] = dv.views.GALLERY
-                            view = emv.views.ViewsFactory.createDataView(files,
-                                                                   **kwargs)
+                            view = emv.views.ViewsFactory.createDataView(
+                                files, **kwargs)
                     else:
                         ms = dv.views.MOVIE_SIZE
                         mode = args.view or (dv.views.SLICES if x > ms
                                              else dv.views.GALLERY)
                         if mode == dv.views.SLICES:
-                            view = emv.views.ViewsFactory.createSlicesView(files,
-                                                                     **kwargs)
+                            view = emv.views.ViewsFactory.createSlicesView(
+                                files, **kwargs)
                         else:
                             kwargs['view'] = mode
-                            view = emv.views.ViewsFactory.createDataView(files,
-                                                                   **kwargs)
-            elif emv.utilsPath.isStandardImage(files):
+                            view = emv.views.ViewsFactory.createDataView(
+                                files, **kwargs)
+            elif emv.utils.EmPath.isStandardImage(files):
                 view = emv.views.ViewsFactory.createImageView(files, **kwargs)
             else:
                 view = None

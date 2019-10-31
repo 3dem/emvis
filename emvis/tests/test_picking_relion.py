@@ -60,7 +60,7 @@ class TestPickerView(dv.tests.TestView):
         coordTable = emc.Table()
         table.read(micsStarPath)
 
-        model = emv.utilsPickerModel()
+        model = emv.models.EmPickerModel()
         model.setBoxSize(64)
 
         def _getMicPath(micName):
@@ -79,17 +79,16 @@ class TestPickerView(dv.tests.TestView):
             micBase = os.path.basename(micPath).replace(".mrc",
                                                         "_autopick.star")
             micCoordsFn = os.path.join(pickingPath, micBase)
-
+            model.addMicrograph(mic)
             if os.path.exists(micCoordsFn):
                 coordTable.read(micCoordsFn)
                 for coordRow in coordTable:
-                    mic.addCoordinate(
-                        dv.models.Coordinate(
-                            round(float(coordRow['rlnCoordinateY'])),
-                            round(float(coordRow['rlnCoordinateX']))))
-            model.addMicrograph(mic)
+                    coord = model.createCoordinate(
+                        round(float(coordRow['rlnCoordinateY'])),
+                        round(float(coordRow['rlnCoordinateX'])), '')
+                    model.addCoordinates(mic.getId(), [coord])
 
-        return dv.views.PickerView(None, model=model, **kwargs)
+        return dv.views.PickerView(model, **kwargs)
 
 
 if __name__ == '__main__':

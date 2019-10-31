@@ -94,17 +94,17 @@ class EmBrowser(dv.widgets.FileBrowser):
 
     def _createViewPanel(self, **kwargs):
         viewPanel = qtw.QWidget(self)
+        kwargs['parent'] = viewPanel
+        self._dataView = dv.views.DataView(dv.models.EmptyTableModel(),
+                                           **kwargs)
 
-        self._dataView = dv.views.DataView(
-            viewPanel, model=dv.models.EmptyTableModel(), **kwargs)
+        self._imageView = dv.views.ImageView(**kwargs)
 
-        self._imageView = dv.views.ImageView(viewPanel, **kwargs)
+        self._slicesView = dv.views.SlicesView(dv.models.EmptySlicesModel(),
+                                               **kwargs)
 
-        self._slicesView = dv.views.SlicesView(
-            viewPanel, dv.models.EmptySlicesModel(), **kwargs)
-
-        self._volumeView = dv.views.VolumeView(
-            parent=viewPanel, model=dv.models.EmptyVolumeModel(), **kwargs)
+        self._volumeView = dv.views.VolumeView(dv.models.EmptyVolumeModel(),
+                                               **kwargs)
 
         self._textView = dv.widgets.TextView(viewPanel)
 

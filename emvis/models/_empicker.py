@@ -23,7 +23,7 @@ class EmPickerModel(models.PickerModel):
             data = self._cache[micId]
         else:
             print("  Computing....")
-            mic = self._micrographs[micId]
+            mic = self.getMicrograph(micId)
             from scipy.ndimage import gaussian_filter
             import numpy as np
             data = self._imageManager.getData(mic.getPath())
@@ -46,5 +46,7 @@ class EmPickerModel(models.PickerModel):
         :param micId:  (int) The micrograph Id
         :return: dict
         """
-        mic = self._micrographs[micId]
+        mic = self.getMicrograph(micId)
         return self._imageManager.getInfo(mic.getPath())
+
+

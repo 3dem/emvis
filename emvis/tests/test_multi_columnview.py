@@ -10,6 +10,10 @@ import PyQt5.QtCore as qtc
 
 class MultiColumnsView(dv.views.ColumnsView):
 
+    def __init__(self, model, **kwargs):
+        self._model = model
+        dv.views.ColumnsView.__init__(self, model, **kwargs)
+
     def _createContentWidget(self):
         """ Should be implemented in subclasses to build the content widget
         and return it. """
