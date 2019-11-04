@@ -9,17 +9,19 @@ TRUE_VALUES = ['on', '1', 'yes', 'true']
 FALSE_VALUES = ['off', '0', 'no', 'false']
 
 
+
 class ArgDictAction(argparse.Action):
     """ Subclass of Action to implement special dict-like params
     with key=value pairs, usually with on/off boolean values.
     Example:
         --display axis=on histogram=off scale=50%
     """
-    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+    def __init__(self, option_strings, dest, argsDictClass=None, nargs=None, **kwargs):
         if nargs != '+':
             raise Exception("Only nargs='+' are supported for ArgDictAction.")
 
         argparse.Action.__init__(self, option_strings, dest, nargs, **kwargs)
+        self._argsDictClass = argsDictClass
 
     def __call__(self, parser, namespace, values, option_string=None):
         def _getValue(value):
@@ -30,13 +32,24 @@ class ArgDictAction(argparse.Action):
                 return False
             return value  # just original string value
 
-        print("values: ", values)
-        print("option_strings: ", option_string)
-
+        argDict = self._argsDictClass()
         for pair in values:
             key, value = pair.split("=")
-            attrName = '%s_%s' % (self.dest, key)
-            setattr(namespace, attrName, _getValue(value))
+            argDict[key] = _getValue(value)
+        setattr(namespace, self.dest, argDict)
+
+
+class MicsCoordsAction(argparse.Action):
+    """
+    Validate there are 1 or 2 input values.
+    Either only Micrographs, or Micrographs and Coordinates.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        if len(values) > 2:
+            raise Exception("Invalid number of arguments for %s. Only 2 "
+                             "arguments are supported." % option_string)
+        argparse.Action.__call__(self, parser, namespace, values,
+                                 option_string=option_string)
 
 
 class ValidateValues(argparse.Action):
