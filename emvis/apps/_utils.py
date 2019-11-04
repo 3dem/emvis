@@ -5,6 +5,40 @@ from glob import glob
 import datavis as dv
 
 
+TRUE_VALUES = ['on', '1', 'yes', 'true']
+FALSE_VALUES = ['off', '0', 'no', 'false']
+
+
+class ArgDictAction(argparse.Action):
+    """ Subclass of Action to implement special dict-like params
+    with key=value pairs, usually with on/off boolean values.
+    Example:
+        --display axis=on histogram=off scale=50%
+    """
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs != '+':
+            raise Exception("Only nargs='+' are supported for ArgDictAction.")
+
+        argparse.Action.__init__(self, option_strings, dest, nargs, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        def _getValue(value):
+            v = value.lower()
+            if v in TRUE_VALUES:
+                return True
+            if v in FALSE_VALUES:
+                return False
+            return value  # just original string value
+
+        print("values: ", values)
+        print("option_strings: ", option_string)
+
+        for pair in values:
+            key, value = pair.split("=")
+            attrName = '%s_%s' % (self.dest, key)
+            setattr(namespace, attrName, _getValue(value))
+
+
 class ValidateValues(argparse.Action):
     """ Class that allows the validation of mapped arguments values to the user
     valuesDict. The valuesDict keys most be specified in lower case.
@@ -140,3 +174,5 @@ def parsePickCoordinates(path):
                                 x2=int(parts[2]), y2=int(parts[3]))
                 else:
                     yield ""
+
+
