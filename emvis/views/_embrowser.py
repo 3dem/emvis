@@ -1,4 +1,5 @@
 
+import os
 import PyQt5.QtWidgets as qtw
 
 import datavis as dv
@@ -12,11 +13,13 @@ class EmBrowser(dv.widgets.FileBrowser):
     def __init__(self, **kwargs):
         """
         Creates a EmBrowser instance
-        :param kwargs: See dv.widgets.FileBrowser params
+        Keyword Args:
+            textLines: The first and last lines to be shown in text file preview
+            :class:`FileBrowser <dv.widgets.FileBrowser>` params
         """
-        dv.widgets.FileBrowser.__init__(self, **kwargs)
-
         self._lines = kwargs.get('textLines', 100)
+
+        dv.widgets.FileBrowser.__init__(self, **kwargs)
 
         self._dataView.sigCurrentTableChanged.connect(
             self.__onDataViewTableChanged)
@@ -106,7 +109,7 @@ class EmBrowser(dv.widgets.FileBrowser):
         self._volumeView = dv.views.VolumeView(dv.models.EmptyVolumeModel(),
                                                **kwargs)
 
-        self._textView = dv.widgets.TextView(viewPanel)
+        self._textView = dv.widgets.TextView(viewPanel, True)
 
         self._emptyWidget = qtw.QWidget(parent=viewPanel)
 
@@ -201,14 +204,20 @@ class EmBrowser(dv.widgets.FileBrowser):
                 self._textView.setHighlighter(h)
                 info['Type'] = 'TEXT FILE'
                 self._textView.setPlainText("")
-                with open(imagePath) as f:
-                    for _ in range(int(self._lines/2)):
-                        l = f.readline()
-                        if l:
-                            self._textView.appendPlainText(l)
-                    if f.readline():
-                        self._textView.appendHtml(
-                            "<b>*** First %d lines ***</b>" % self._lines)
+
+                fl, ll, size = readLinesFromFile(imagePath, self._lines,
+                                                 self._lines)
+                d = {i + 1: i + 1 for i in range(len(fl))}
+                self._textView.setLinesDict(d)
+
+                self._textView.setPlainText("".join(fl))
+                if ll:
+                    self._textView.appendPlainText(".\n.\n.\n")
+                    for i in range(len(ll)):
+                        d[self._lines + i + 6] = size - self._lines + i + 1
+
+                    self._textView.appendPlainText("".join(ll))
+
                 self.__showTextView()
             else:
                 self.__showEmptyWidget()
@@ -237,3 +246,55 @@ class EmBrowser(dv.widgets.FileBrowser):
         path = model.filePath(index)
         self.showFile(path)
 
+
+def readLinesFromFile(fname, fi, la):
+    """
+    Read the first fi lines and last la lines from the given file
+
+    Args:
+        fname: (str) The file name
+        fi:    (int) The first lines to be read
+        la:    (int) The last lines to be read
+
+    Returns:
+         A tupple with two list: first and last lines, and the number of lines
+    """
+
+    fsize = os.stat(fname).st_size
+
+    with open(fname) as f:
+        lines = []
+        for _ in range(fi):
+            line = f.readline()
+            if line:
+                lines.append(line)
+            else:
+                break
+
+        s = f.tell()
+        size = len(lines)
+        for _ in f:
+            size += 1
+
+        f.seek(s)
+
+        if s < fsize:
+            i = 0
+            bufsize = 8192
+            if bufsize > fsize:
+                bufsize = fsize - 1
+
+            data = []
+            while True:
+                i += 1
+                seek = fsize - bufsize * i
+                if seek < s:
+                    seek = s
+
+                f.seek(seek)
+
+                data.extend(f.readlines())
+                if len(data) >= la or seek == s:
+                    return lines, data[-la:], size
+        else:
+            return lines, [], size
