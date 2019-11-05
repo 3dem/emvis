@@ -1,5 +1,5 @@
 
-import os.path as Path
+import os
 import numpy as np
 
 import emcore as emc
@@ -8,7 +8,7 @@ import datavis.models as models
 from ..utils import EmPath, EmType
 from ._emtable_model import (EmTableModel, EmStackModel, EmVolumeModel,
                              EmListModel)
-from ._empicker import EmPickerModel
+from ._empicker import EmPickerModel, RelionPickerModel
 
 
 class ModelsFactory:
@@ -48,47 +48,50 @@ class ModelsFactory:
         return model
 
     @classmethod
-    def createPickerModel(cls, files=None, boxSize=50, sources=None,
-                          parseCoordFunc=None):
+    def createPickerModel(cls, inputMics, inputCoords=None, **kwargs):
         """
-        Create the `PickerModel <datavis.models.PickerModel>` from the given
-        list of files. You can pass the function responsible for parsing
-        the coordinate files. This function should return an iterable object
-        over the coordinate list.
+        Guess the type of :class:`~datavis.models.PickerModel` (e.g Scipion, Relion, Xmipp, etc)
+        that should be created based on the input directories.
 
         Args:
-            files:   (list) The list of files
-            boxsize: (int) The box size
-            sources: (dict) Each element is (mic-path, coord-path)
-            parseCoordFunc: The parser function for coordinates file
+            inputMics:  main input path (folder or file), usually related to micrographs.
+            inputCoords: input related to coordinates (either a file or folder path)
+
+        Keyword Args:
+            Extra parameters.
 
         Returns:
-            A :class:`PickerModel <datavis.models.PickerModel>` instance
+            A :class:`~datavis.models.PickerModel` subclass instance
         """
-        model = EmPickerModel()
+        model = None
 
-        if files and isinstance(files, list):
-            for f in files:
-                if not Path.exists(f):
-                    raise Exception("Input file '%s' does not exists. " % f)
-                if not Path.isdir(f):
-                    model.addMicrograph(models.Micrograph(None, f))
-                else:
-                    raise Exception('Directories are not supported for '
-                                    'picker model.')
-        elif sources is not None:
-            for micPath, coordPath in sources.values():
-                if parseCoordFunc and coordPath:
-                    coords = parseCoordFunc(coordPath)
-                else:
-                    coords = None
+        if os.path.exists(os.path.join(inputMics, 'note.txt')):
+            model = RelionPickerModel(inputMics, inputCoords, **kwargs)
 
-                mic = models.Micrograph(None, micPath)
-                model.addMicrograph(mic)
-                if coords:
-                    model.addCoordinates(mic.getId(), coords)
+        #model = EmPickerModel()
 
-        model.setBoxSize(boxSize)
+        # if files and isinstance(files, list):
+        #     for f in files:
+        #         if not Path.exists(f):
+        #             raise Exception("Input file '%s' does not exists. " % f)
+        #         if not Path.isdir(f):
+        #             model.addMicrograph(models.Micrograph(None, f))
+        #         else:
+        #             raise Exception('Directories are not supported for '
+        #                             'picker model.')
+        # elif sources is not None:
+        #     for micPath, coordPath in sources.values():
+        #         if parseCoordFunc and coordPath:
+        #             coords = parseCoordFunc(coordPath)
+        #         else:
+        #             coords = None
+        #
+        #         mic = models.Micrograph(None, micPath)
+        #         model.addMicrograph(mic)
+        #         if coords:
+        #             model.addCoordinates(mic.getId(), coords)
+        #
+        # model.setBoxSize(boxSize)
         return model
 
     @classmethod

@@ -42,8 +42,8 @@ class BoxArgsDict(dict):
                 else dv.views.DEFAULT_MODE)
 
 
-def main(argv):
-    argv = argv or sys.argv
+def main(argv=None):
+    argv = argv or sys.argv[1:]
 
     app = qtw.QApplication(argv)
     paramCount = 0
@@ -60,7 +60,7 @@ def main(argv):
         help='Provide input Micrographs and, optionally, Coordinates.')
 
     argParser.add_argument(
-        '--box', action=ArgDictAction, default=BoxArgsDict(),
+        '--box', action=ArgDictAction, default=BoxArgsDict(), nargs='+',
         argsDictClass=BoxArgsDict,
         help=textwrap.dedent("""
             Provide options specific for the box.
@@ -102,46 +102,27 @@ def main(argv):
 
     args = argParser.parse_args()
 
-    # # ARGS
-    # files = []
-    # for f in args.files:
-    #     files.append(qtc.QDir.toNativeSeparators(f))
-    #
-    # if not files and not args.picker:
-    #     files = [str(os.getcwd())]  # if not files use the current dir
-
-    kwargs['files'] = files
-
-    kwargs['histogram'] = args.histogram
-    kwargs['toolBar'] = args.tool_bar
-
-    kwargs['img_desc'] = False
-    kwargs['fit'] = args.fit
-    kwargs['axis'] = args.axis
-    kwargs['zoom_units'] = dv.views.PIXEL_UNITS
-
-    # Picker params
-    kwargs['boxSize'] = args.box['size']
-    kwargs['pickerMode'] = args.picker_mode
-    kwargs['shape'] = args.box['shape']
+    kwargs = {
+        #'scale': args.display['scale'],
+        #'histogram': args.display['histogram'],
+        #'toolBar': args.display['toolbar'],
+        #'fit': args.display['fit'],
+        'boxSize': args.box['size'],
+        'pickerMode': args.box.getMode(),
+        'shape': args.box['shape']
+    }
 
     # kwargs['removeRois'] = args.remove_rois
     # kwargs['roiAspectLocked'] = args.roi_aspect_locked
     # kwargs['roiCentered'] = args.roi_centered
 
-    from datavis.views import showView
+    micsFolder = args.input[0]
 
     def _createView():
-        return emv.views.ViewsFactory.createPickerView(
-            files, sources=args.picker,
-            **kwargs)
+        model = emv.models.ModelsFactory.createPickerModel(micsFolder)
+        return dv.views.PickerView(model, **kwargs)
 
-    showView()
-
-    view.setWindowTitle("EM-PICKER")
-    print(traceback.format_exc())
-
-    sys.exit(app.exec_())
+    dv.views.showView(_createView, title="EM-PICKER")
 
 
 if __name__ == '__main__':
