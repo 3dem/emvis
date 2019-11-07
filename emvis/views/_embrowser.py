@@ -1,9 +1,11 @@
 
 import os
 import PyQt5.QtWidgets as qtw
+from PyQt5.QtGui import QImage
 
 import datavis as dv
 
+from ._box import ImageBox
 from ..utils import MOVIE_SIZE, getHighlighterClass, EmPath, ImageManager
 from ..models import ModelsFactory
 
@@ -91,8 +93,12 @@ class EmBrowser(dv.widgets.FileBrowser):
         """ Show the TextView component """
         self._stackLayout.setCurrentWidget(self._textView)
 
+    def __showBoxWidget(self):
+        """ Show the ImageBox component """
+        self._stackLayout.setCurrentWidget(self._box)
+
     def __showEmptyWidget(self):
-        """Show an empty widget"""
+        """ Show an empty widget"""
         self._stackLayout.setCurrentWidget(self._emptyWidget)
 
     def _createViewPanel(self, **kwargs):
@@ -111,6 +117,8 @@ class EmBrowser(dv.widgets.FileBrowser):
 
         self._textView = dv.widgets.TextView(viewPanel, True)
 
+        self._box = ImageBox(parent=viewPanel)
+
         self._emptyWidget = qtw.QWidget(parent=viewPanel)
 
         layout = qtw.QHBoxLayout(viewPanel)
@@ -121,6 +129,7 @@ class EmBrowser(dv.widgets.FileBrowser):
         self._stackLayout.addWidget(self._slicesView)
         self._stackLayout.addWidget(self._textView)
         self._stackLayout.addWidget(self._emptyWidget)
+        self._stackLayout.addWidget(self._box)
 
         return viewPanel
 
@@ -161,7 +170,15 @@ class EmBrowser(dv.widgets.FileBrowser):
                 dimStr = "%d x %d" % (model.getRowsCount(),
                                       model.getColumnsCount())
                 info['Dimensions (Rows x Columns)'] = dimStr
-            elif EmPath.isData(imagePath) or EmPath.isStandardImage(imagePath):
+            elif EmPath.isStandardImage(imagePath):
+                image = QImage(imagePath)
+                self._box.setImage(image)
+                info['dim'] = (image.width(), image.height())
+                info['ext'] = EmPath.getExt(imagePath)
+                info['Type'] = 'STANDARD-IMAGE'
+                self.__showBoxWidget()
+                self._box.fitToWindow()
+            elif EmPath.isData(imagePath):
                 info = ImageManager().getInfo(imagePath)
                 d = info['dim']
                 if d.n == 1:  # Single image or volume
@@ -245,6 +262,7 @@ class EmBrowser(dv.widgets.FileBrowser):
         model = self._treeModelView.model()
         path = model.filePath(index)
         self.showFile(path)
+
 
 
 def readLinesFromFile(fname, fi, la):
