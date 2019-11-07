@@ -177,7 +177,7 @@ class EmBrowser(dv.widgets.FileBrowser):
                 info['ext'] = EmPath.getExt(imagePath)
                 info['Type'] = 'STANDARD-IMAGE'
                 self.__showBoxWidget()
-                self._box.fitToWindow()
+                self._box.fitToSize()
             elif EmPath.isData(imagePath):
                 info = ImageManager().getInfo(imagePath)
                 d = info['dim']
