@@ -152,7 +152,8 @@ class EmBrowser(dv.widgets.FileBrowser):
         3. Tools for very basic analysis of image data (see ROI and Norm
            buttons)
 
-        :param imagePath: the image path
+        Args:
+            imagePath: the image path
         """
         try:
             info = {'Type': 'UNKNOWN'}
@@ -220,20 +221,9 @@ class EmBrowser(dv.widgets.FileBrowser):
                 h = cl(None) if cl is not None else None
                 self._textView.setHighlighter(h)
                 info['Type'] = 'TEXT FILE'
-                self._textView.setPlainText("")
-
-                fl, ll, size = readLinesFromFile(imagePath, self._lines,
-                                                 self._lines)
-                d = {i + 1: i + 1 for i in range(len(fl))}
-                self._textView.setLinesDict(d)
-
-                self._textView.setPlainText("".join(fl))
-                if ll:
-                    self._textView.appendPlainText(".\n.\n.\n")
-                    for i in range(len(ll)):
-                        d[self._lines + i + 6] = size - self._lines + i + 1
-
-                    self._textView.appendPlainText("".join(ll))
+                self._textView.clear()
+                with open(imagePath) as f:
+                    self._textView.readText(f, self._lines, self._lines, '...')
 
                 self.__showTextView()
             else:
@@ -262,57 +252,3 @@ class EmBrowser(dv.widgets.FileBrowser):
         model = self._treeModelView.model()
         path = model.filePath(index)
         self.showFile(path)
-
-
-
-def readLinesFromFile(fname, fi, la):
-    """
-    Read the first fi lines and last la lines from the given file
-
-    Args:
-        fname: (str) The file name
-        fi:    (int) The first lines to be read
-        la:    (int) The last lines to be read
-
-    Returns:
-         A tupple with two list: first and last lines, and the number of lines
-    """
-
-    fsize = os.stat(fname).st_size
-
-    with open(fname) as f:
-        lines = []
-        for _ in range(fi):
-            line = f.readline()
-            if line:
-                lines.append(line)
-            else:
-                break
-
-        s = f.tell()
-        size = len(lines)
-        for _ in f:
-            size += 1
-
-        f.seek(s)
-
-        if s < fsize:
-            i = 0
-            bufsize = 8192
-            if bufsize > fsize:
-                bufsize = fsize - 1
-
-            data = []
-            while True:
-                i += 1
-                seek = fsize - bufsize * i
-                if seek < s:
-                    seek = s
-
-                f.seek(seek)
-
-                data.extend(f.readlines())
-                if len(data) >= la or seek == s:
-                    return lines, data[-la:], size
-        else:
-            return lines, [], size
