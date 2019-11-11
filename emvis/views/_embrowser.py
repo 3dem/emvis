@@ -1,9 +1,11 @@
 
 import os
 import PyQt5.QtWidgets as qtw
+from PyQt5.QtGui import QImage
 
 import datavis as dv
 
+from ._box import ImageBox
 from ..utils import MOVIE_SIZE, getHighlighterClass, EmPath, ImageManager
 from ..models import ModelsFactory
 
@@ -91,8 +93,12 @@ class EmBrowser(dv.widgets.FileBrowser):
         """ Show the TextView component """
         self._stackLayout.setCurrentWidget(self._textView)
 
+    def __showBoxWidget(self):
+        """ Show the ImageBox component """
+        self._stackLayout.setCurrentWidget(self._box)
+
     def __showEmptyWidget(self):
-        """Show an empty widget"""
+        """ Show an empty widget"""
         self._stackLayout.setCurrentWidget(self._emptyWidget)
 
     def _createViewPanel(self, **kwargs):
@@ -111,6 +117,8 @@ class EmBrowser(dv.widgets.FileBrowser):
 
         self._textView = dv.widgets.TextView(viewPanel, True)
 
+        self._box = ImageBox(parent=viewPanel)
+
         self._emptyWidget = qtw.QWidget(parent=viewPanel)
 
         layout = qtw.QHBoxLayout(viewPanel)
@@ -121,6 +129,7 @@ class EmBrowser(dv.widgets.FileBrowser):
         self._stackLayout.addWidget(self._slicesView)
         self._stackLayout.addWidget(self._textView)
         self._stackLayout.addWidget(self._emptyWidget)
+        self._stackLayout.addWidget(self._box)
 
         return viewPanel
 
@@ -143,7 +152,8 @@ class EmBrowser(dv.widgets.FileBrowser):
         3. Tools for very basic analysis of image data (see ROI and Norm
            buttons)
 
-        :param imagePath: the image path
+        Args:
+            imagePath: the image path
         """
         try:
             info = {'Type': 'UNKNOWN'}
@@ -161,7 +171,15 @@ class EmBrowser(dv.widgets.FileBrowser):
                 dimStr = "%d x %d" % (model.getRowsCount(),
                                       model.getColumnsCount())
                 info['Dimensions (Rows x Columns)'] = dimStr
-            elif EmPath.isData(imagePath) or EmPath.isStandardImage(imagePath):
+            elif EmPath.isStandardImage(imagePath):
+                image = QImage(imagePath)
+                self._box.setImage(image)
+                info['dim'] = (image.width(), image.height())
+                info['ext'] = EmPath.getExt(imagePath)
+                info['Type'] = 'STANDARD-IMAGE'
+                self.__showBoxWidget()
+                self._box.fitToSize()
+            elif EmPath.isData(imagePath):
                 info = ImageManager().getInfo(imagePath)
                 d = info['dim']
                 if d.n == 1:  # Single image or volume
@@ -203,20 +221,9 @@ class EmBrowser(dv.widgets.FileBrowser):
                 h = cl(None) if cl is not None else None
                 self._textView.setHighlighter(h)
                 info['Type'] = 'TEXT FILE'
-                self._textView.setPlainText("")
-
-                fl, ll, size = readLinesFromFile(imagePath, self._lines,
-                                                 self._lines)
-                d = {i + 1: i + 1 for i in range(len(fl))}
-                self._textView.setLinesDict(d)
-
-                self._textView.setPlainText("".join(fl))
-                if ll:
-                    self._textView.appendPlainText(".\n.\n.\n")
-                    for i in range(len(ll)):
-                        d[self._lines + i + 6] = size - self._lines + i + 1
-
-                    self._textView.appendPlainText("".join(ll))
+                self._textView.clear()
+                with open(imagePath) as f:
+                    self._textView.readText(f, self._lines, self._lines, '...')
 
                 self.__showTextView()
             else:
@@ -245,56 +252,3 @@ class EmBrowser(dv.widgets.FileBrowser):
         model = self._treeModelView.model()
         path = model.filePath(index)
         self.showFile(path)
-
-
-def readLinesFromFile(fname, fi, la):
-    """
-    Read the first fi lines and last la lines from the given file
-
-    Args:
-        fname: (str) The file name
-        fi:    (int) The first lines to be read
-        la:    (int) The last lines to be read
-
-    Returns:
-         A tupple with two list: first and last lines, and the number of lines
-    """
-
-    fsize = os.stat(fname).st_size
-
-    with open(fname) as f:
-        lines = []
-        for _ in range(fi):
-            line = f.readline()
-            if line:
-                lines.append(line)
-            else:
-                break
-
-        s = f.tell()
-        size = len(lines)
-        for _ in f:
-            size += 1
-
-        f.seek(s)
-
-        if s < fsize:
-            i = 0
-            bufsize = 8192
-            if bufsize > fsize:
-                bufsize = fsize - 1
-
-            data = []
-            while True:
-                i += 1
-                seek = fsize - bufsize * i
-                if seek < s:
-                    seek = s
-
-                f.seek(seek)
-
-                data.extend(f.readlines())
-                if len(data) >= la or seek == s:
-                    return lines, data[-la:], size
-        else:
-            return lines, [], size

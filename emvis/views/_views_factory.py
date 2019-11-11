@@ -1,5 +1,5 @@
 
-import datavis.views
+import datavis as dv
 
 from ..models import ModelsFactory
 
@@ -12,7 +12,7 @@ class ViewsFactory:
     @staticmethod
     def createImageView(path, **kwargs):
         """ Create an ImageView and load the image from the given path """
-        imgView = datavis.views.ImageView(**kwargs)
+        imgView = dv.views.ImageView(**kwargs)
         imgModel = ModelsFactory.createImageModel(path)
         imgView.setModel(imgModel)
         return imgView
@@ -21,19 +21,19 @@ class ViewsFactory:
     def createSlicesView(path, **kwargs):
         """ Create an SlicesView and load the slices from the given path """
         model = ModelsFactory.createStackModel(path)
-        return datavis.views.SlicesView(model, **kwargs)
+        return dv.views.SlicesView(model, **kwargs)
 
     @staticmethod
     def createVolumeView(path, **kwargs):
         """ Create an VolumeView and load the volume from the given path """
         model = ModelsFactory.createVolumeModel(path)
-        return datavis.views.VolumeView(model, **kwargs)
+        return dv.views.VolumeView(model, **kwargs)
 
     @staticmethod
     def createDataView(path, **kwargs):
         """ Create an DataView and load the volume from the given path """
         model = ModelsFactory.createTableModel(path)
-        return datavis.views.DataView(model, **kwargs)
+        return dv.views.DataView(model, **kwargs)
 
     @staticmethod
     def createPickerView(micFiles, **kwargs):
@@ -49,4 +49,4 @@ class ViewsFactory:
             files=micFiles, boxSize=kwargs.get('boxSize', 100),
             sources=kwargs.get('sources'),
             parseCoordFunc=kwargs.get('parseCoordFunc'))
-        return datavis.views.PickerView(model, **kwargs)
+        return dv.views.PickerView(model, **kwargs)
