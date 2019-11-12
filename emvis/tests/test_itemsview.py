@@ -16,7 +16,7 @@ class TestItemsView(dv.tests.TestView):
 
     def createView(self):
         return dv.views.ItemsView(
-            model=emv.ModelsFactory.createTableModel(self._path),
+            model=emv.models.ModelsFactory.createTableModel(self._path),
             selectionMode=dv.views.ItemsView.MULTI_SELECTION)
 
 

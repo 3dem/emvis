@@ -23,7 +23,7 @@ class TestImageView(dv.tests.TestView):
         imageView = ImageView(parent=None, border_color='#FFAA33', axis=True,
                               toolBar=False, maskColor='#224BBC23',
                               mask=dv.views.CIRCLE_ROI, maskSize=500)
-        imgModel = emv.ModelsFactory.createImageModel(self._path)
+        imgModel = emv.models.ModelsFactory.createImageModel(self._path)
         imageView.setModel(imgModel)
         dim_x, dim_y = imgModel.getDim()
         index, path = imgModel.getLocation()

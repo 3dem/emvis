@@ -18,7 +18,7 @@ class TestGalleryView(dv.tests.TestView):
 
     def createView(self):
         return dv.views.GalleryView(
-            model=emv.ModelsFactory.createTableModel(self._path))
+            model=emv.models.ModelsFactory.createTableModel(self._path))
 
 
 if __name__ == '__main__':

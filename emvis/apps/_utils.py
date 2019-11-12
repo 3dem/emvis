@@ -2,6 +2,54 @@
 import os
 import argparse
 from glob import glob
+import datavis as dv
+
+
+TRUE_VALUES = ['on', '1', 'yes', 'true']
+FALSE_VALUES = ['off', '0', 'no', 'false']
+
+
+
+class ArgDictAction(argparse.Action):
+    """ Subclass of Action to implement special dict-like params
+    with key=value pairs, usually with on/off boolean values.
+    Example:
+        --display axis=on histogram=off scale=50%
+    """
+    def __init__(self, option_strings, dest, argsDictClass=None, nargs=None, **kwargs):
+        if nargs != '+':
+            raise Exception("Only nargs='+' are supported for ArgDictAction.")
+
+        argparse.Action.__init__(self, option_strings, dest, nargs, **kwargs)
+        self._argsDictClass = argsDictClass
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        def _getValue(value):
+            v = value.lower()
+            if v in TRUE_VALUES:
+                return True
+            if v in FALSE_VALUES:
+                return False
+            return value  # just original string value
+
+        argDict = self._argsDictClass()
+        for pair in values:
+            key, value = pair.split("=")
+            argDict[key] = _getValue(value)
+        setattr(namespace, self.dest, argDict)
+
+
+class MicsCoordsAction(argparse.Action):
+    """
+    Validate there are 1 or 2 input values.
+    Either only Micrographs, or Micrographs and Coordinates.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        if len(values) > 2:
+            raise Exception("Invalid number of arguments for %s. Only 2 "
+                             "arguments are supported." % option_string)
+        argparse.Action.__call__(self, parser, namespace, values,
+                                 option_string=option_string)
 
 
 class ValidateValues(argparse.Action):
@@ -17,8 +65,11 @@ class ValidateValues(argparse.Action):
     """
     def __init__(self, option_strings, dest, valuesDict, **kwargs):
         """ Creates a ValidateValues object
-         - kwargs: The argparse.Action arguments and
-            - valuesDict:  (dict) a dictionary for maps the values
+
+         Args:
+             valuesDict:  (dict) a dictionary for maps the values
+         Keyword Args:
+             The argparse.Action arguments and
         """
         argparse.Action.__init__(self, option_strings, dest, **kwargs)
         self._valuesDict = valuesDict or dict()
@@ -106,22 +157,35 @@ def capitalizeStrList(strIterable):
 def parsePickCoordinates(path):
     """ Parse (x, y) coordinates from a text file assuming
      that the first two columns on each line are x and y.
+     Other specifications can be:
+      - x  y  label
+      - x1  y1  x2   y2
+      - x1  y1  x2   y2 label
     """
     with open(path) as f:
+        Coord = dv.models.Coordinate
         for line in f:
             li = line.strip()
             if li:
                 parts = li.strip().split()
                 size = len(parts)
                 if size == 2:  # (x, y)
-                    yield int(parts[0]), int(parts[1]), ""
+                    # yield int(parts[0]), int(parts[1]), ""
+                    yield Coord(int(parts[0]), int(parts[1]), "")
                 elif size == 3:  # (x, y, label)
-                    yield int(parts[0]), int(parts[1]), str(parts[2])
+                    # yield int(parts[0]), int(parts[1]), str(parts[2])
+                    yield Coord(int(parts[0]), int(parts[1]), str(parts[2]))
                 elif size == 4:  # (x1, y1, x2, y2)
-                    yield int(parts[0]), int(parts[1]), \
-                          int(parts[2]), int(parts[3]), ""
+                    # yield int(parts[0]), int(parts[1]),
+                    #      int(parts[2]), int(parts[3]), ""
+                    yield Coord(int(parts[0]), int(parts[1]), "",
+                                x2=int(parts[2]), y2=int(parts[3]))
                 elif size == 5:  # (x1, y1, x2, y2, label):
-                    yield int(parts[0]), int(parts[1]), \
-                          int(parts[2]), int(parts[3]), str(parts[4])
+                    # yield int(parts[0]), int(parts[1]),
+                    #      int(parts[2]), int(parts[3]), str(parts[4])
+                    yield Coord(int(parts[0]), int(parts[1]), str(parts[4]),
+                                x2=int(parts[2]), y2=int(parts[3]))
                 else:
                     yield ""
+
+

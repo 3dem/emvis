@@ -14,8 +14,8 @@ class TestImageView(dv.tests.TestView):
         ]
 
     def createView(self):
-        imageView = dv.views.ImageView(parent=None, border_color='#FFAA33')
-        imgModel = emv.ModelsFactory.createImageModel(self._path)
+        imageView = dv.views.ImageView(border_color='#FFAA33')
+        imgModel = emv.models.ModelsFactory.createImageModel(self._path)
         imageView.setModel(imgModel)
         dim_x, dim_y = imgModel.getDim()
         index, path = imgModel.getLocation()

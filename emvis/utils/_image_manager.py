@@ -3,7 +3,6 @@
 
 import os
 import numpy as np
-import scipy.ndimage as ndimage
 
 import emcore as emc
 from datavis.utils import py23
@@ -68,8 +67,11 @@ class ImageManager:
             there is no need to prepend any value.
         """
         imgRef = cls.getRef(imageSource)
+        imgPath = imgRef.path
+        if ':' in imgPath:
+            imgPath = imgPath.split(':')[0]
 
-        if os.path.exists(imgRef.path):
+        if os.path.exists(imgPath):
             return ''  # There is no need for any prefix
 
         if os.path.isdir(rootPath):
@@ -78,7 +80,7 @@ class ImageManager:
             searchPath = os.path.dirname(rootPath)
 
         while searchPath and searchPath != '/':
-            if os.path.exists(os.path.join(searchPath, imgRef.path)):
+            if os.path.exists(os.path.join(searchPath, imgPath)):
                 return searchPath
             searchPath = os.path.dirname(searchPath)
 
@@ -101,11 +103,15 @@ class ImageManager:
         Return the imageRef and the imageIO.
         """
         imgRef = self.getRef(imgSource)
+        imgPath = imgRef.path
+        imgFormat = ''  # By default inferred from path
         # Let's keep open the file if possible, so we don't need
         # to re-open if in the next use it is the same file
-        if self._lastOpenedFile != imgRef.path:
+        if self._lastOpenedFile != imgPath:
             self._imgIO.close()
-            self._imgIO.open(imgRef.path, emc.File.READ_ONLY)
+            if ':' in imgPath:
+                imgPath, imgFormat = imgPath.split(':')
+            self._imgIO.open(imgPath, emc.File.READ_ONLY, imgFormat)
             self._lastOpenedFile = imgRef.path
         return imgRef, self._imgIO
 
@@ -160,47 +166,6 @@ class ImageManager:
             'data_type': imgIO.getType()
         }
         return info
-
-
-class VolImageManager(ImageManager):
-    """ ImageManager for Volume images """
-    def __init__(self, volData):
-        self._volData = volData
-
-    def addImage(self, imgRef, imgSize=None):
-        return self.__createThumb(imgRef, imgSize=imgSize)
-
-    def __createThumb(self, imgRef, **kwargs):
-        """
-        Return the thumbnail created for the specified image reference.
-        Rescale the original image according to the param imageSize=(w, h).
-        If imageSize=None then return the original image data
-        """
-        imgSize = kwargs.get('imgSize')
-
-        if imgRef.axis == X_AXIS:
-            array = self._volData[:, :, imgRef.index]
-        elif imgRef.axis == Y_AXIS:
-            array = self._volData[:, imgRef.index, :]
-        else:  # Z
-            array = self._volData[imgRef.index, :, :]
-
-        if imgSize is None:
-            return array
-
-        # preserve aspect ratio
-        x, y = array.shape[0], array.shape[1]
-        if x > imgSize[0]:
-            y = int(max(y * imgSize[0] / x, 1))
-            x = int(imgSize[0])
-        if y > imgSize[1]:
-            x = int(max(x * imgSize[1] / y, 1))
-            y = int(imgSize[1])
-
-        if x >= array.shape[0] and y >= array.shape[1]:
-            return array
-
-        return ndimage.zoom(array, x / float(array.shape[0]), order=1)
 
 
 class ImageRef:

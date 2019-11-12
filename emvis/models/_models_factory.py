@@ -1,14 +1,14 @@
 
-import os.path as Path
+import os
 import numpy as np
 
 import emcore as emc
 import datavis.models as models
-from ._empath import EmPath
-from ._emtype import EmType
+
+from ..utils import EmPath, EmType
 from ._emtable_model import (EmTableModel, EmStackModel, EmVolumeModel,
                              EmListModel)
-from ._empicker import EmPickerDataModel
+from ._empicker import EmPickerModel, RelionPickerModel
 
 
 class ModelsFactory:
@@ -27,9 +27,13 @@ class ModelsFactory:
     @classmethod
     def createTableModel(cls, path):
         """
-        Creates an TableModel reading path as an emc.Table
-        :param path: (str) The table path
-        :return:     TableModel
+        Creates an `TableModel <datavis.models.TableModel>` reading path as an
+        emc.Table.
+
+        Args:
+            path: (str) The table path
+
+        Returns:  `TableModel <datavis.models.TableModel>`
         """
         if EmPath.isTable(path):
             model = EmTableModel(path)
@@ -44,48 +48,62 @@ class ModelsFactory:
         return model
 
     @classmethod
-    def createPickerModel(cls, files=None, boxSize=50, sources=None,
-                          parseCoordFunc=None):
+    def createPickerModel(cls, inputMics, inputCoords=None, **kwargs):
         """
-        Create the PickerDataModel from the given list of files
+        Guess the type of :class:`~datavis.models.PickerModel` (e.g Scipion, Relion, Xmipp, etc)
+        that should be created based on the input directories.
 
-        :param files:   (list) The list of files
-        :param boxsize: (int) The box size
-        :param sources: (dict) Each element is (mic-path, coord-path)
-        :param parseCoordFunc: The parser function for coordinates file
-        :return: (PickerDataModel)
+        Args:
+            inputMics:  main input path (folder or file), usually related to micrographs.
+            inputCoords: input related to coordinates (either a file or folder path)
+
+        Keyword Args:
+            Extra parameters.
+
+        Returns:
+            A :class:`~datavis.models.PickerModel` subclass instance
         """
-        model = EmPickerDataModel()
+        model = None
 
-        if files and isinstance(files, list):
-            for f in files:
-                if not Path.exists(f):
-                    raise Exception("Input file '%s' does not exists. " % f)
-                if not Path.isdir(f):
-                    model.addMicrograph(models.Micrograph(-1, f))
-                else:
-                    raise Exception('Directories are not supported for '
-                                    'picker model.')
-        elif sources is not None:
-            for micPath, coordPath in sources.values():
-                if parseCoordFunc and coordPath:
-                    coords = parseCoordFunc(coordPath)
-                else:
-                    coords = None
-                mic = models.Micrograph(-1, micPath, coords)
-                model.addMicrograph(mic)
+        if os.path.exists(os.path.join(inputMics, 'note.txt')):
+            model = RelionPickerModel(inputMics, inputCoords, **kwargs)
 
-        model.setBoxSize(boxSize)
+        #model = EmPickerModel()
+
+        # if files and isinstance(files, list):
+        #     for f in files:
+        #         if not Path.exists(f):
+        #             raise Exception("Input file '%s' does not exists. " % f)
+        #         if not Path.isdir(f):
+        #             model.addMicrograph(models.Micrograph(None, f))
+        #         else:
+        #             raise Exception('Directories are not supported for '
+        #                             'picker model.')
+        # elif sources is not None:
+        #     for micPath, coordPath in sources.values():
+        #         if parseCoordFunc and coordPath:
+        #             coords = parseCoordFunc(coordPath)
+        #         else:
+        #             coords = None
+        #
+        #         mic = models.Micrograph(None, micPath)
+        #         model.addMicrograph(mic)
+        #         if coords:
+        #             model.addCoordinates(mic.getId(), coords)
+        #
+        # model.setBoxSize(boxSize)
         return model
 
     @classmethod
     def createEmptyTableModel(cls, columns=[]):
         """
-        Creates an TableModel, initializing the table header from the given
-        ColumnInfo list
-        :param columns:  (list) List of ColumnInfo for table header
-                                initialization
-        :return: TableModel
+        Creates an TableModel instance, initializing the table header from the
+        given ColumnInfo list
+
+        Args:
+            columns:  (list) List of ColumnInfo for table header initialization
+        Returns:
+            A :class:`TableModel <datavis.models.TableModel>` instance
         """
         Column = emc.Table.Column
         cols = []
@@ -101,16 +119,22 @@ class ModelsFactory:
     @classmethod
     def createStackModel(cls, path):
         """
-        Creates an TableModel reading stack from the given path
-        :param path: (str) The stack path
+        Creates an `TableModel <datavis.models.TableModel>` reading stack from
+        the given path.
+
+        Args:
+            path: (str) The stack path
         """
         return EmStackModel(path)
 
     @classmethod
     def createVolumeModel(cls, path):
         """
-        Creates an VolumeModel reading image data from the given path
-        :param path: (str) The volume path
+        Creates an `VolumeModel <datavis.models.VolumeModel>` reading image data
+        from the given path.
+
+        Args:
+            path: (str) The volume path
         """
         return EmVolumeModel(path)
 

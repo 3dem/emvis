@@ -2,34 +2,33 @@
 import os
 import numpy as np
 
-import emcore as emc
-import datavis.models as models
-from datavis.models import TYPE_STRING
+import datavis as dv
 from datavis.utils import py23
+import emcore as emc
 
-from ._image_manager import ImageManager, ImageRef
-from ._emtype import EmType
-from ._empath import EmPath
+from ..utils import EmType, EmPath, ImageManager, ImageRef
 
 
-class EmTableModel(models.TableModel):
-    """
-    Implementation of TableBase with an underlying emc.Table object.
+class EmTableModel(dv.models.TableModel):
+    """ Implementation of TableModel for EM formats using a emc.Table object
+    to parse the data.
     """
     def __init__(self, tableSource, **kwargs):
-        """
-        Initialization of an EmTableModel
-        :param tableSource: Input from where table will be retrieved,
-            it can be one of the following options:
-            * emc.Table: just a single table that will be used, not
-                other tables will be loaded in this case
-            * string: This should be the path from where to read
-                the table(s). The first table will be loaded by default.
-            * tuple (string, string): Here you can specify the path and
-                the name of the table that you want to be loaded by
-                default.
-        :param **kwargs: Extra arguments
-            * imageManager=value Provide an ImageManager that can be used
+        """ Create a new instance of EmTableModel.
+
+        Args:
+            tableSource: Input from where table will be retrieved,
+                it can be one of the following options:
+
+                    * emc.Table: just a single table that will be used, not
+                        other tables will be loaded in this case
+                    * string: This should be the path from where to read
+                        the table(s). The first table will be loaded by default.
+                    * tuple (string, string): Here you can specify the path and
+                        the name of the table that you want to be loaded by default.
+
+        Keyword Arguments:
+            imageManager=value Provide an ImageManager that can be used
                 to read images referenced from this table.
         """
         if isinstance(tableSource, emc.Table):
@@ -41,12 +40,16 @@ class EmTableModel(models.TableModel):
             self._tableNames = [tableName]
         else:  # In this variant we will create a emc.TableFile to read data
             if isinstance(tableSource, py23.str):
-                self._path, tableName = tableSource, None
+                if '@' in tableSource:
+                    tableName, path = tableSource.split('@')
+                else:
+                    tableName, path = None, tableSource
             elif isinstance(tableSource, tuple):
-                self._path, tableName = tableSource
+                path, tableName = tableSource
             else:
                 raise Exception("Invalid tableSource input '%s' (type %s)"
                                 % (tableSource, type(tableSource)))
+            self._path = os.path.abspath(path)
             self._tableIO = emc.TableFile()
             self._tableIO.open(self._path, emc.File.Mode.READ_ONLY)
             self._table = emc.Table()
@@ -79,7 +82,7 @@ class EmTableModel(models.TableModel):
 
     def iterColumns(self):
         for c in self._table.iterColumns():
-            yield models.ColumnInfo(c.getName(), EmType.toModel(c.getType()))
+            yield dv.models.ColumnInfo(c.getName(), EmType.toModel(c.getType()))
 
     def getColumnsCount(self):
         """ Return the number of columns. """
@@ -105,7 +108,6 @@ class EmTableModel(models.TableModel):
         else:
             imgPrefix = self._imagePrefixes.get(
                 col, self._imageManager.findImagePrefix(value, self._path))
-            print("Finding image prefix: ", imgPrefix)
             self._imagePrefixes[col] = imgPrefix
 
         if imgPrefix is not None:
@@ -114,7 +116,7 @@ class EmTableModel(models.TableModel):
         return self._imageManager.getData(imgRef)
 
 
-class EmStackModel(models.SlicesModel):
+class EmStackModel(dv.models.SlicesModel):
     """
     The EmStackModel class provides the basic functionality for image stack.
     The following methods are wrapped directly from SlicesModel:
@@ -136,7 +138,7 @@ class EmStackModel(models.SlicesModel):
          - imageManager=value Provide an ImageManager that can be used
                 to read images referenced from this table.
         """
-        models.SlicesModel.__init__(self, **kwargs)
+        dv.models.SlicesModel.__init__(self, **kwargs)
         self._path = path
         self._imageManager = kwargs.get('imageManager', ImageManager())
         x, y, z, n = self._imageManager.getDim(path)
@@ -157,7 +159,7 @@ class EmStackModel(models.SlicesModel):
         return self._path
 
 
-class EmVolumeModel(models.VolumeModel):
+class EmVolumeModel(dv.models.VolumeModel):
     """
     The EmVolumeModel class provides the basic functionality for image volume
     """
@@ -194,10 +196,10 @@ class EmVolumeModel(models.VolumeModel):
 
             self._dim = dim.x, dim.y, dim.z
 
-        models.VolumeModel.__init__(self, data)
+        dv.models.VolumeModel.__init__(self, data)
 
 
-class EmListModel(models.ListModel):
+class EmListModel(dv.models.ListModel):
     """ The EmListModel class provides the basic functionality for create models
     or read data from the list of file paths
     """
@@ -219,7 +221,8 @@ class EmListModel(models.ListModel):
         self._tableNames = [self._tableName]
 
     def iterColumns(self):
-        yield models.ColumnInfo(self._columnName, EmType.toModel(TYPE_STRING))
+        yield dv.models.ColumnInfo(self._columnName,
+                                   EmType.toModel(dv.models.TYPE_STRING))
 
     def getRowsCount(self):
         """ Return the number of rows. """
@@ -254,6 +257,6 @@ class EmListModel(models.ListModel):
         from ._models_factory import ModelsFactory
         path = self.getValue(row, 0)
         if EmPath.isImage(path):
-            return models.ImageModel(self.getData(row))
+            return dv.models.ImageModel(self.getData(row))
         elif EmPath.isVolume(path):
             return ModelsFactory.createVolumeModel(path)

@@ -1,12 +1,13 @@
 
+import os
 import PyQt5.QtWidgets as qtw
+from PyQt5.QtGui import QImage
 
 import datavis as dv
 
-from ._models_factory import ModelsFactory
-from ._image_manager import ImageManager
-from ._empath import EmPath
-from .utils import MOVIE_SIZE, getHighlighterClass
+from ._box import ImageBox
+from ..utils import MOVIE_SIZE, getHighlighterClass, EmPath, ImageManager
+from ..models import ModelsFactory
 
 
 class EmBrowser(dv.widgets.FileBrowser):
@@ -14,11 +15,13 @@ class EmBrowser(dv.widgets.FileBrowser):
     def __init__(self, **kwargs):
         """
         Creates a EmBrowser instance
-        :param kwargs: See dv.widgets.FileBrowser params
+        Keyword Args:
+            textLines: The first and last lines to be shown in text file preview
+            :class:`FileBrowser <dv.widgets.FileBrowser>` params
         """
-        dv.widgets.FileBrowser.__init__(self, **kwargs)
-
         self._lines = kwargs.get('textLines', 100)
+
+        dv.widgets.FileBrowser.__init__(self, **kwargs)
 
         self._dataView.sigCurrentTableChanged.connect(
             self.__onDataViewTableChanged)
@@ -90,25 +93,31 @@ class EmBrowser(dv.widgets.FileBrowser):
         """ Show the TextView component """
         self._stackLayout.setCurrentWidget(self._textView)
 
+    def __showBoxWidget(self):
+        """ Show the ImageBox component """
+        self._stackLayout.setCurrentWidget(self._box)
+
     def __showEmptyWidget(self):
-        """Show an empty widget"""
+        """ Show an empty widget"""
         self._stackLayout.setCurrentWidget(self._emptyWidget)
 
     def _createViewPanel(self, **kwargs):
         viewPanel = qtw.QWidget(self)
+        kwargs['parent'] = viewPanel
+        self._dataView = dv.views.DataView(dv.models.EmptyTableModel(),
+                                           **kwargs)
 
-        self._dataView = dv.views.DataView(
-            viewPanel, model=dv.models.EmptyTableModel(), **kwargs)
+        self._imageView = dv.views.ImageView(**kwargs)
 
-        self._imageView = dv.views.ImageView(viewPanel, **kwargs)
+        self._slicesView = dv.views.SlicesView(dv.models.EmptySlicesModel(),
+                                               **kwargs)
 
-        self._slicesView = dv.views.SlicesView(
-            viewPanel, dv.models.EmptySlicesModel(), **kwargs)
+        self._volumeView = dv.views.VolumeView(dv.models.EmptyVolumeModel(),
+                                               **kwargs)
 
-        self._volumeView = dv.views.VolumeView(
-            parent=viewPanel, model=dv.models.EmptyVolumeModel(), **kwargs)
+        self._textView = dv.widgets.TextView(viewPanel, True)
 
-        self._textView = dv.widgets.TextView(viewPanel)
+        self._box = ImageBox(parent=viewPanel)
 
         self._emptyWidget = qtw.QWidget(parent=viewPanel)
 
@@ -120,6 +129,7 @@ class EmBrowser(dv.widgets.FileBrowser):
         self._stackLayout.addWidget(self._slicesView)
         self._stackLayout.addWidget(self._textView)
         self._stackLayout.addWidget(self._emptyWidget)
+        self._stackLayout.addWidget(self._box)
 
         return viewPanel
 
@@ -142,7 +152,8 @@ class EmBrowser(dv.widgets.FileBrowser):
         3. Tools for very basic analysis of image data (see ROI and Norm
            buttons)
 
-        :param imagePath: the image path
+        Args:
+            imagePath: the image path
         """
         try:
             info = {'Type': 'UNKNOWN'}
@@ -160,7 +171,15 @@ class EmBrowser(dv.widgets.FileBrowser):
                 dimStr = "%d x %d" % (model.getRowsCount(),
                                       model.getColumnsCount())
                 info['Dimensions (Rows x Columns)'] = dimStr
-            elif EmPath.isData(imagePath) or EmPath.isStandardImage(imagePath):
+            elif EmPath.isStandardImage(imagePath):
+                image = QImage(imagePath)
+                self._box.setImage(image)
+                info['dim'] = (image.width(), image.height())
+                info['ext'] = EmPath.getExt(imagePath)
+                info['Type'] = 'STANDARD-IMAGE'
+                self.__showBoxWidget()
+                self._box.fitToSize()
+            elif EmPath.isData(imagePath):
                 info = ImageManager().getInfo(imagePath)
                 d = info['dim']
                 if d.n == 1:  # Single image or volume
@@ -202,15 +221,10 @@ class EmBrowser(dv.widgets.FileBrowser):
                 h = cl(None) if cl is not None else None
                 self._textView.setHighlighter(h)
                 info['Type'] = 'TEXT FILE'
-                self._textView.setPlainText("")
+                self._textView.clear()
                 with open(imagePath) as f:
-                    for _ in range(int(self._lines/2)):
-                        l = f.readline()
-                        if l:
-                            self._textView.appendPlainText(l)
-                    if f.readline():
-                        self._textView.appendHtml(
-                            "<b>*** First %d lines ***</b>" % self._lines)
+                    self._textView.readText(f, self._lines, self._lines, '...')
+
                 self.__showTextView()
             else:
                 self.__showEmptyWidget()
@@ -238,4 +252,3 @@ class EmBrowser(dv.widgets.FileBrowser):
         model = self._treeModelView.model()
         path = model.filePath(index)
         self.showFile(path)
-
