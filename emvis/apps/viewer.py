@@ -60,19 +60,9 @@ def main(argv=None):
            fit:       (bool) if false, the image will not be adjusted to widget size (default true)
            view:      (string) Select the initial view. Options: gallery, columns, items, slices
            scale:     (string) Select initial scale (use %% for percentage)
+           visible:   (string) Specifies the names of the columns that must be visible, separated by comma
+           render:    (string) Specifies the names of the columns that must be rendered, separated by comma
         """))
-
-
-    # COLUMNS PARAMS
-    argParser.add_argument('--visible', type=str, nargs='?', default='',
-                           required=False, action=ValidateStrList,
-                           help=' Columns to be shown (and their order).')
-    argParser.add_argument('--render', type=str, nargs='?', default='',
-                           required=False, action=ValidateStrList,
-                           help=' Columns to be rendered.')
-    argParser.add_argument('--sort', type=str, nargs='?', default='',
-                           required=False, action=ValidateStrList,
-                           help=' Sort command.')
 
     args = argParser.parse_args(argv)
     app = qtw.QApplication([])
@@ -81,7 +71,6 @@ def main(argv=None):
     path = args.path or os.getcwd()
     print("argv: ", argv)
     print("path: ", path)
-
 
     kwargs = {
         'files': path,
@@ -108,7 +97,7 @@ def main(argv=None):
         'default': None  # Just choose the default view for the widget
     }
 
-    if not viewKey in viewsDict:
+    if viewKey not in viewsDict:
         raise Exception("Invalid view '%s' for --display. "
                         % args.display['view'])
     view = viewsDict[viewKey]
@@ -155,8 +144,6 @@ def main(argv=None):
     if not emv.utils.EmPath.exists(path):
         raise Exception("Input file '%s' does not exists. " % path)
 
-
-
     if os.path.isdir(path):
         kwargs['rootPath'] = path
         kwargs['mode'] = dv.widgets.TreeModelView.DIR_MODE
@@ -167,28 +154,30 @@ def main(argv=None):
         if view == dv.views.SLICES:
             raise Exception("Invalid display mode for table: '%s'" % view)
 
-        if args.visible or args.render:
-            # FIXME[phv] create the TableConfig
-            pass
-        else:
-            tableViewConfig = None
-        if args.sort:
-            # FIXME[phv] sort by the given column
-            pass
         kwargs['view'] = view or dv.views.COLUMNS
-        viewWidget = ViewsFactory.createDataView(path, **kwargs)
+
+        visible = args.display.get('visible')
+        visible = visible.split(',') if visible else []
+
+        render = args.display.get('render')
+        render = render.split(',') if render else []
+
+        viewWidget = ViewsFactory.createDataView(path, visible=visible,
+                                                 render=render,
+                                                 **kwargs)
 
     elif emv.utils.EmPath.isData(path):
         print("Data case")
         # *.mrc may be image, stack or volume. Ask for dim.n
-        x, y, z, n = emv.utils.ImageManager().getDim(path)
+        d = emv.utils.ImageManager().getDim(path)
+        x, y, z, n = d
         if n == 1:  # Single image or volume
             if z == 1:  # Single image
                 viewWidget = ViewsFactory.createImageView(
                     path, **kwargs)
             else:  # Volume
                 view = view or dv.views.SLICES
-                if not view in [dv.views.SLICES, dv.views.GALLERY]:
+                if view not in [dv.views.SLICES, dv.views.GALLERY]:
                     raise Exception("Invalid display mode for volume")
 
                 # kwargs['toolBar'] = False
@@ -200,7 +189,7 @@ def main(argv=None):
             print("Is stack")
             if z > 1:  # volume stack
                 view = view or dv.views.SLICES
-                if not view in [dv.views.SLICES, dv.views.GALLERY]:
+                if view not in [dv.views.SLICES, dv.views.GALLERY]:
                     raise Exception("Invalid display mode for Stack")
 
                 viewWidget = ViewsFactory.createVolumeView(
