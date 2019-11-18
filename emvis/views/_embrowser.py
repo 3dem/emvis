@@ -222,6 +222,7 @@ class EmBrowser(dv.widgets.FileBrowser):
                                                **kwargs)
 
         self._textView = dv.widgets.TextView(viewPanel, True)
+        self._textView.setReadOnly(True)
 
         self._box = ImageBox(parent=viewPanel)
 

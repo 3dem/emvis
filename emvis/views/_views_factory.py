@@ -1,7 +1,10 @@
 
+from PyQt5.QtGui import QImage
+
 import datavis as dv
 
 from ..models import ModelsFactory
+from ._box import ImageBox
 
 
 class ViewsFactory:
@@ -15,6 +18,16 @@ class ViewsFactory:
         imgModel = ModelsFactory.createImageModel(path)
         imgView = dv.views.ImageView(model=imgModel, **kwargs)
         return imgView
+
+    @staticmethod
+    def createImageBox(path):
+        """
+        Create an ImageBox and load the standard image from the given path """
+        box = ImageBox()
+        image = QImage(path)
+        box.setImage(image)
+        box.fitToSize()
+        return box
 
     @staticmethod
     def createSlicesView(path, **kwargs):

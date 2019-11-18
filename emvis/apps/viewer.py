@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import traceback
 import textwrap
 
 import PyQt5.QtCore as qtc
@@ -217,7 +216,7 @@ def main(argv=None):
                 else:
                     viewWidget = ViewsFactory.createDataView(path, **kwargs)
     elif emv.utils.EmPath.isStandardImage(path):
-        viewWidget = ViewsFactory.createImageView(path, **kwargs)
+        viewWidget = ViewsFactory.createImageBox(path)
 
     if viewWidget is None:
         raise Exception("Can't create a view for this file.")
