@@ -7,7 +7,6 @@ import textwrap
 import PyQt5.QtCore as qtc
 import PyQt5.QtWidgets as qtw
 
-import datavis as dv
 import emvis as emv
 from emvis.views import ViewsFactory
 

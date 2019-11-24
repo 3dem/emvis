@@ -72,7 +72,6 @@ class RelionPickerModel(EmPickerModel):
 
         self._loadData()
 
-
     def _initLabels(self):
         """ Initialize the labels for this PickerModel. """
         colors = [
@@ -144,13 +143,13 @@ class RelionPickerModel(EmPickerModel):
         """ Return a Column list that will be used to display micrographs. """
         return [
             dv.models.ColumnConfig('Micrograph', dataType=dv.models.TYPE_STRING,
-                                editable=True),
+                                   editable=False),
             dv.models.ColumnConfig('FOM', dataType=dv.models.TYPE_FLOAT,
-                                editable=True),
+                                   editable=False),
             dv.models.ColumnConfig('Coordinates', dataType=dv.models.TYPE_INT,
-                                editable=True),
+                                   editable=False),
             dv.models.ColumnConfig('Id', dataType=dv.models.TYPE_INT,
-                                editable=True, visible=False),
+                                   editable=False, visible=False),
         ]
 
     def getValue(self, row, col):
@@ -183,7 +182,7 @@ class RelionPickerModel(EmPickerModel):
                                     'this value.')
 
         useColor = Param('useColor', 'bool', value=self._useColor,
-                          label='Color coordinates by FOM?')
+                         label='Color coordinates by FOM?')
 
         return dv.models.Form([
             [scoreThreshold, useColor]
