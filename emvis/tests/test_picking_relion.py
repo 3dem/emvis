@@ -84,8 +84,8 @@ class TestPickerView(dv.tests.TestView):
                 coordTable.read(micCoordsFn)
                 for coordRow in coordTable:
                     coord = model.createCoordinate(
-                        round(float(coordRow['rlnCoordinateY'])),
-                        round(float(coordRow['rlnCoordinateX'])), '')
+                        round(float(coordRow['rlnCoordinateX'])),
+                        round(float(coordRow['rlnCoordinateY'])), '')
                     model.addCoordinates(mic.getId(), [coord])
 
         return dv.views.PickerView(model, **kwargs)
