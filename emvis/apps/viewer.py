@@ -100,7 +100,7 @@ def main(argv=None):
                         % args.display['view'])
     view = viewsDict[viewKey]
 
-    def getPreferedBounds(width=None, height=None):
+    def getPreferredBounds(width=None, height=None):
         size = qtw.QApplication.desktop().size()
         p = 0.8
         (w, h) = (int(p * size.width()), int(p * size.height()))
@@ -109,6 +109,16 @@ def main(argv=None):
         w = min(width, w)
         h = min(height, h)
         return (size.width() - w) / 2, (size.height() - h) / 2, w, h
+
+    def isImageWidget(viewWidget):
+        """ Return True if the given widget can show images: ImageView,
+        SlicesView, VolumeView, ...
+        """
+        return (isinstance(viewWidget, dv.views.ImageView) or
+              isinstance(viewWidget, dv.views.SlicesView) or
+              isinstance(viewWidget, dv.views.PickerView) or
+              isinstance(viewWidget, dv.views.MultiSliceView) or
+              isinstance(viewWidget, dv.views.VolumeView))
 
     def fitViewSize(viewWidget, imageDim=None):
         """
@@ -120,20 +130,17 @@ def main(argv=None):
 
         if isinstance(viewWidget, dv.views.DataView):
             size = viewWidget.getPreferredSize()
-            x, y, w, h = getPreferedBounds(size[0], size[1])
-        elif (isinstance(viewWidget, dv.views.ImageView) or
-                isinstance(viewWidget, dv.views.SlicesView) or
-                isinstance(viewWidget, dv.views.PickerView)) and \
-                imageDim is not None:
+            x, y, w, h = getPreferredBounds(size[0], size[1])
+        elif imageDim is not None and isImageWidget(viewWidget):
             dx, dy = imageDim[0], imageDim[1]
-            x, y, w, h = getPreferedBounds(max(viewWidget.width(), dx),
-                                           max(viewWidget.height(), dy))
+            x, y, w, h = getPreferredBounds(max(viewWidget.width(), dx),
+                                            max(viewWidget.height(), dy))
             size = qtc.QSize(dx, dy).scaled(w, h, qtc.Qt.KeepAspectRatio)
             dw, dh = w - size.width(), h - size.height()
             x, y, w, h = x + dw/2, y + dh/2, size.width(), size.height()
         else:
-            x, y, w, h = getPreferedBounds(100000,
-                                           100000)
+            x, y, w, h = getPreferredBounds(100000,
+                                            100000)
         viewWidget.setGeometry(x, y, w, h)
 
     d = None
