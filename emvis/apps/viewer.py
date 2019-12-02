@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import traceback
 import textwrap
 
 import PyQt5.QtCore as qtc
 import PyQt5.QtWidgets as qtw
 
-import datavis as dv
 import emvis as emv
 from emvis.views import ViewsFactory
 
@@ -60,19 +58,9 @@ def main(argv=None):
            fit:       (bool) if false, the image will not be adjusted to widget size (default true)
            view:      (string) Select the initial view. Options: gallery, columns, items, slices
            scale:     (string) Select initial scale (use %% for percentage)
+           visible:   (string) Specifies the names of the columns that must be visible, separated by comma
+           render:    (string) Specifies the names of the columns that must be rendered, separated by comma
         """))
-
-
-    # COLUMNS PARAMS
-    argParser.add_argument('--visible', type=str, nargs='?', default='',
-                           required=False, action=ValidateStrList,
-                           help=' Columns to be shown (and their order).')
-    argParser.add_argument('--render', type=str, nargs='?', default='',
-                           required=False, action=ValidateStrList,
-                           help=' Columns to be rendered.')
-    argParser.add_argument('--sort', type=str, nargs='?', default='',
-                           required=False, action=ValidateStrList,
-                           help=' Sort command.')
 
     args = argParser.parse_args(argv)
     app = qtw.QApplication([])
@@ -81,7 +69,6 @@ def main(argv=None):
     path = args.path or os.getcwd()
     print("argv: ", argv)
     print("path: ", path)
-
 
     kwargs = {
         'files': path,
@@ -108,12 +95,12 @@ def main(argv=None):
         'default': None  # Just choose the default view for the widget
     }
 
-    if not viewKey in viewsDict:
+    if viewKey not in viewsDict:
         raise Exception("Invalid view '%s' for --display. "
                         % args.display['view'])
     view = viewsDict[viewKey]
 
-    def getPreferedBounds(width=None, height=None):
+    def getPreferredBounds(width=None, height=None):
         size = qtw.QApplication.desktop().size()
         p = 0.8
         (w, h) = (int(p * size.width()), int(p * size.height()))
@@ -122,6 +109,16 @@ def main(argv=None):
         w = min(width, w)
         h = min(height, h)
         return (size.width() - w) / 2, (size.height() - h) / 2, w, h
+
+    def isImageWidget(viewWidget):
+        """ Return True if the given widget can show images: ImageView,
+        SlicesView, VolumeView, ...
+        """
+        return (isinstance(viewWidget, dv.views.ImageView) or
+              isinstance(viewWidget, dv.views.SlicesView) or
+              isinstance(viewWidget, dv.views.PickerView) or
+              isinstance(viewWidget, dv.views.MultiSliceView) or
+              isinstance(viewWidget, dv.views.VolumeView))
 
     def fitViewSize(viewWidget, imageDim=None):
         """
@@ -133,20 +130,17 @@ def main(argv=None):
 
         if isinstance(viewWidget, dv.views.DataView):
             size = viewWidget.getPreferredSize()
-            x, y, w, h = getPreferedBounds(size[0], size[1])
-        elif (isinstance(viewWidget, dv.views.ImageView) or
-                isinstance(viewWidget, dv.views.SlicesView) or
-                isinstance(viewWidget, dv.views.PickerView)) and \
-                imageDim is not None:
+            x, y, w, h = getPreferredBounds(size[0], size[1])
+        elif imageDim is not None and isImageWidget(viewWidget):
             dx, dy = imageDim[0], imageDim[1]
-            x, y, w, h = getPreferedBounds(max(viewWidget.width(), dx),
-                                           max(viewWidget.height(), dy))
+            x, y, w, h = getPreferredBounds(max(viewWidget.width(), dx),
+                                            max(viewWidget.height(), dy))
             size = qtc.QSize(dx, dy).scaled(w, h, qtc.Qt.KeepAspectRatio)
             dw, dh = w - size.width(), h - size.height()
             x, y, w, h = x + dw/2, y + dh/2, size.width(), size.height()
         else:
-            x, y, w, h = getPreferedBounds(100000,
-                                           100000)
+            x, y, w, h = getPreferredBounds(100000,
+                                            100000)
         viewWidget.setGeometry(x, y, w, h)
 
     d = None
@@ -154,8 +148,6 @@ def main(argv=None):
 
     if not emv.utils.EmPath.exists(path):
         raise Exception("Input file '%s' does not exists. " % path)
-
-
 
     if os.path.isdir(path):
         kwargs['rootPath'] = path
@@ -167,28 +159,30 @@ def main(argv=None):
         if view == dv.views.SLICES:
             raise Exception("Invalid display mode for table: '%s'" % view)
 
-        if args.visible or args.render:
-            # FIXME[phv] create the TableConfig
-            pass
-        else:
-            tableViewConfig = None
-        if args.sort:
-            # FIXME[phv] sort by the given column
-            pass
         kwargs['view'] = view or dv.views.COLUMNS
-        viewWidget = ViewsFactory.createDataView(path, **kwargs)
+
+        visible = args.display.get('visible')
+        visible = visible.split(',') if visible else []
+
+        render = args.display.get('render')
+        render = render.split(',') if render else []
+
+        viewWidget = ViewsFactory.createDataView(path, visible=visible,
+                                                 render=render,
+                                                 **kwargs)
 
     elif emv.utils.EmPath.isData(path):
         print("Data case")
         # *.mrc may be image, stack or volume. Ask for dim.n
-        x, y, z, n = emv.utils.ImageManager().getDim(path)
+        d = emv.utils.ImageManager().getDim(path)
+        x, y, z, n = d
         if n == 1:  # Single image or volume
             if z == 1:  # Single image
                 viewWidget = ViewsFactory.createImageView(
                     path, **kwargs)
             else:  # Volume
                 view = view or dv.views.SLICES
-                if not view in [dv.views.SLICES, dv.views.GALLERY]:
+                if view not in [dv.views.SLICES, dv.views.GALLERY]:
                     raise Exception("Invalid display mode for volume")
 
                 # kwargs['toolBar'] = False
@@ -200,7 +194,7 @@ def main(argv=None):
             print("Is stack")
             if z > 1:  # volume stack
                 view = view or dv.views.SLICES
-                if not view in [dv.views.SLICES, dv.views.GALLERY]:
+                if view not in [dv.views.SLICES, dv.views.GALLERY]:
                     raise Exception("Invalid display mode for Stack")
 
                 viewWidget = ViewsFactory.createVolumeView(
@@ -228,7 +222,7 @@ def main(argv=None):
                 else:
                     viewWidget = ViewsFactory.createDataView(path, **kwargs)
     elif emv.utils.EmPath.isStandardImage(path):
-        viewWidget = ViewsFactory.createImageView(path, **kwargs)
+        viewWidget = ViewsFactory.createImageBox(path)
 
     if viewWidget is None:
         raise Exception("Can't create a view for this file.")

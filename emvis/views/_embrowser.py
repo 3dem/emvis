@@ -9,6 +9,12 @@ from ._box import ImageBox
 from ..utils import MOVIE_SIZE, getHighlighterClass, EmPath, ImageManager
 from ..models import ModelsFactory
 
+DATA_VIEW = 500
+VOLUME_VIEW = 501
+TEXT_VIEW = 502
+IMAGE_VIEW = 503
+IMAGE_BOX = 504
+
 
 class EmBrowser(dv.widgets.FileBrowser):
     """ """
@@ -20,9 +26,8 @@ class EmBrowser(dv.widgets.FileBrowser):
             :class:`FileBrowser <dv.widgets.FileBrowser>` params
         """
         self._lines = kwargs.get('textLines', 100)
-
         dv.widgets.FileBrowser.__init__(self, **kwargs)
-
+        self._registerViews()
         self._dataView.sigCurrentTableChanged.connect(
             self.__onDataViewTableChanged)
 
@@ -101,11 +106,112 @@ class EmBrowser(dv.widgets.FileBrowser):
         """ Show an empty widget"""
         self._stackLayout.setCurrentWidget(self._emptyWidget)
 
+    def __showStandardImage(self, path):
+        """ Show a table file from the given path
+
+        Returns:
+            A dict with file info
+        """
+        image = QImage(path)
+        self._box.setImage(image)
+        self.__showBoxWidget()
+        self._box.fitToSize()
+
+        return {
+            'dim': (image.width(), image.height()),
+            'ext': EmPath.getExt(path),
+            'Type': 'STANDARD-IMAGE'
+        }
+
+    def __showTableFile(self, path):
+        """ Show a table file from the given path
+
+        Returns:
+            A dict with file info
+        """
+        model = ModelsFactory.createTableModel(path)
+        self._dataView.setModel(model)
+        if not model.getRowsCount() == 1:
+            self._dataView.setView(dv.views.COLUMNS)
+        else:
+            self._dataView.setView(dv.views.ITEMS)
+
+        self.__showDataView()
+        # Show the Table dimensions
+        info = {
+            'Type': 'TABLE',
+            'Dimensions (Rows x Columns)': "%d x %d" % (model.getRowsCount(),
+                                                        model.getColumnsCount())
+        }
+
+        return info
+
+    def __showDataFile(self, path):
+        """ Show a data file from the given path
+
+        Returns:
+            A dict with file info
+        """
+        info = ImageManager().getInfo(path)
+        d = info['dim']
+        if d.n == 1:  # Single image or volume
+            if d.z == 1:  # Single image
+                model = ModelsFactory.createImageModel(path)
+                self._imageView.setModel(model)
+                self._imageView.setImageInfo(
+                    path=path, format=info['ext'],
+                    data_type=str(info['data_type']))
+                info['Type'] = 'SINGLE-IMAGE'
+                self.__showImageView()
+            else:  # Volume
+                # The image has a volume. The data is a numpy 3D array.
+                # In this case, display the Top, Front and the Right
+                # View planes.
+                info['type'] = "VOLUME"
+                model = ModelsFactory.createVolumeModel(path)
+                self._volumeView.setModel(model)
+                self.__showVolumeSlice()
+        else:
+            # Image stack
+            if d.z > 1:  # Volume stack
+                raise Exception("Volume stack is not supported")
+            elif d.x <= MOVIE_SIZE:
+                info['type'] = 'IMAGES STACK'
+                model = ModelsFactory.createTableModel(path)
+                self._dataView.setModel(model)
+                self._dataView.setView(dv.views.GALLERY)
+                self.__showDataView()
+            else:
+                info['type'] = 'MOVIE'
+                model = ModelsFactory.createStackModel(path)
+                self._slicesView.setModel(model)
+                self.__showSlicesView()
+        # TODO Show the image type
+        return info
+
+    def __showTextFile(self, path):
+        """ Show a text file from the given path
+
+        Returns:
+            A dict with file info
+        """
+        extType = EmPath.getExtType(path)
+        cl = getHighlighterClass(extType)
+        h = cl(None) if cl is not None else None
+        self._textView.setHighlighter(h)
+        self._textView.clear()
+        with open(path) as f:
+            self._textView.readText(f, self._lines, self._lines, '...')
+
+        self.__showTextView()
+        return {'Type': 'TEXT FILE'}
+
     def _createViewPanel(self, **kwargs):
         viewPanel = qtw.QWidget(self)
         kwargs['parent'] = viewPanel
         self._dataView = dv.views.DataView(dv.models.EmptyTableModel(),
                                            **kwargs)
+        self._dataView.showLeftToolBar(False)
 
         self._imageView = dv.views.ImageView(**kwargs)
 
@@ -116,6 +222,7 @@ class EmBrowser(dv.widgets.FileBrowser):
                                                **kwargs)
 
         self._textView = dv.widgets.TextView(viewPanel, True)
+        self._textView.setReadOnly(True)
 
         self._box = ImageBox(parent=viewPanel)
 
@@ -137,95 +244,72 @@ class EmBrowser(dv.widgets.FileBrowser):
         self._infoWidget = qtw.QListWidget(self)
         return self._infoWidget
 
-    def showFile(self, imagePath):
+    def _registerViews(self):
+        """ Register the views associated with the supported file extensions.
+        Inherited classes can reimplement this method to register other views
+        and file extensions.
         """
-        This method display an image using of pyqtgraph dv.views.ImageView,
-        a volume using the VOLUME-SLICER or dv.views.GALLERY-VIEW components,
-        a image stack or
-        a Table characteristics.
+        self.registerView('.star', DATA_VIEW, 'fa5s.table', True)
+        self.registerView('.star', TEXT_VIEW, 'fa5s.file-alt', False)
+        self.registerView('.xmd', DATA_VIEW, 'fa5s.table', True)
+        self.registerView('.xmd', TEXT_VIEW, 'fa5s.file-alt', False)
 
-        pageBar provides:
-
-        1. A zoomable region for displaying the image
-        2. A combination histogram and gradient editor (HistogramLUTItem) for
-           controlling the visual appearance of the image
-        3. Tools for very basic analysis of image data (see ROI and Norm
-           buttons)
+    def _getShowFileFunction(self, path):
+        """
+        Return the function that should be used to display the file specified by
+        path. Inherited classes can reimplement this method to provide other
+        functions that display the data specified by path.
 
         Args:
-            imagePath: the image path
+            path:  (str) The file path
+
+        Returns:
+              A function with the following signature: funcName(path:str)
+              The function must return a dict with file information
+        """
+
+        view = self.getCurrentView(EmPath.getExt(path))
+
+        if view is None:
+            return None
+
+        if view == DATA_VIEW:
+            func = self.__showTableFile
+        elif view in [IMAGE_VIEW, VOLUME_VIEW]:
+            func = self.__showDataFile
+        elif view == IMAGE_BOX:
+            func = self.__showStandardImage
+        elif view == TEXT_VIEW:
+            func = self.__showTextFile
+        else:
+            func = None
+
+        return func
+
+    def _showFile(self, path):
+        """
+        This method show the content of the file specified by the given path.
+        Depending on the file type, the corresponding view will be used.
+
+        Args:
+            path: (str) The image path
         """
         try:
             info = {'Type': 'UNKNOWN'}
-            if EmPath.isTable(imagePath):
-                model = ModelsFactory.createTableModel(imagePath)
-                self._dataView.setModel(model)
-                if not model.getRowsCount() == 1:
-                    self._dataView.setView(dv.views.COLUMNS)
-                else:
-                    self._dataView.setView(dv.views.ITEMS)
 
-                self.__showDataView()
-                # Show the Table dimensions
-                info['Type'] = 'TABLE'
-                dimStr = "%d x %d" % (model.getRowsCount(),
-                                      model.getColumnsCount())
-                info['Dimensions (Rows x Columns)'] = dimStr
-            elif EmPath.isStandardImage(imagePath):
-                image = QImage(imagePath)
-                self._box.setImage(image)
-                info['dim'] = (image.width(), image.height())
-                info['ext'] = EmPath.getExt(imagePath)
-                info['Type'] = 'STANDARD-IMAGE'
-                self.__showBoxWidget()
-                self._box.fitToSize()
-            elif EmPath.isData(imagePath):
-                info = ImageManager().getInfo(imagePath)
-                d = info['dim']
-                if d.n == 1:  # Single image or volume
-                    if d.z == 1:  # Single image
-                        model = ModelsFactory.createImageModel(imagePath)
-                        self._imageView.setModel(model)
-                        self._imageView.setImageInfo(
-                            path=imagePath, format=info['ext'],
-                            data_type=str(info['data_type']))
-                        info['Type'] = 'SINGLE-IMAGE'
-                        self.__showImageView()
-                    else:  # Volume
-                        # The image has a volume. The data is a numpy 3D array.
-                        # In this case, display the Top, Front and the Right
-                        # View planes.
-                        info['type'] = "VOLUME"
-                        model = ModelsFactory.createVolumeModel(imagePath)
-                        self._volumeView.setModel(model)
-                        self.__showVolumeSlice()
-                else:
-                    # Image stack
-                    if d.z > 1:  # Volume stack
-                        raise Exception("Volume stack is not supported")
-                    elif d.x <= MOVIE_SIZE:
-                        info['type'] = 'IMAGES STACK'
-                        model = ModelsFactory.createTableModel(imagePath)
-                        self._dataView.setModel(model)
-                        self._dataView.setView(dv.views.GALLERY)
-                        self.__showDataView()
-                    else:
-                        info['type'] = 'MOVIE'
-                        model = ModelsFactory.createStackModel(imagePath)
-                        self._slicesView.setModel(model)
-                        self.__showSlicesView()
-                    # TODO Show the image type
-            elif EmPath.isTextFile(imagePath):
-                extType = EmPath.getExtType(imagePath)
-                cl = getHighlighterClass(extType)
-                h = cl(None) if cl is not None else None
-                self._textView.setHighlighter(h)
-                info['Type'] = 'TEXT FILE'
-                self._textView.clear()
-                with open(imagePath) as f:
-                    self._textView.readText(f, self._lines, self._lines, '...')
+            func = self._getShowFileFunction(path)
 
-                self.__showTextView()
+            if func is not None:
+                info = func(path)
+            #  Show the default view
+            elif EmPath.isTable(path):
+                info = self.__showTableFile(path)
+            elif EmPath.isStandardImage(path):
+                info = self.__showStandardImage(path)
+            elif EmPath.isData(path):
+                info = self.__showDataFile(path)
+            elif EmPath.isTextFile(path):
+                info = self.__showTextFile(path)
             else:
                 self.__showEmptyWidget()
                 info.clear()
@@ -251,4 +335,4 @@ class EmBrowser(dv.widgets.FileBrowser):
         index = self._treeModelView.currentIndex()
         model = self._treeModelView.model()
         path = model.filePath(index)
-        self.showFile(path)
+        self._showFile(path)
