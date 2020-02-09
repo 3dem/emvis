@@ -3,7 +3,6 @@ import os
 import numpy as np
 
 import datavis as dv
-from datavis.utils import py23
 import emcore as emc
 
 from ..utils import EmType, EmPath, ImageManager, ImageRef
@@ -39,7 +38,7 @@ class EmTableModel(dv.models.TableModel):
             self._path = None
             self._tableNames = [tableName]
         else:  # In this variant we will create a emc.TableFile to read data
-            if isinstance(tableSource, py23.str):
+            if isinstance(tableSource, str):
                 if '@' in tableSource:
                     tableName, path = tableSource.split('@')
                 else:
