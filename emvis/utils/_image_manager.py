@@ -5,7 +5,6 @@ import os
 import numpy as np
 
 import emcore as emc
-from datavis.utils import py23
 from ._empath import EmPath
 from ._emtype import EmType
 
@@ -93,7 +92,7 @@ class ImageManager:
         if isinstance(imgSource, ImageRef):
             return imgSource
 
-        if isinstance(imgSource, py23.str):
+        if isinstance(imgSource, str):
             return ImageRef.parsePath(imgSource)
 
         raise Exception('Can not get ImageRef from type %s' % type(imgSource))
