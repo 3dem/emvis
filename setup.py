@@ -186,6 +186,7 @@ setup(
        'console_scripts': [
            'em-viewer=emvis.apps:viewer',
            'em-picker=emvis.apps:picker',
+           'em-viewer-relion=emvis.apps.relion:main',
        ],
     },
 
