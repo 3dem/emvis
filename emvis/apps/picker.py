@@ -70,36 +70,6 @@ def main(argv=None):
                        For filaments valid shapes are: segment and segment_line.
             """))
 
-    # pickerDict = {
-    #     'default': dv.views.DEFAULT_MODE,
-    #     'filament': dv.views.FILAMENT_MODE
-    # }
-    # picker_params = capitalizeStrList(pickerDict.keys())
-    # argParser.add_argument('--picker-mode', type=str,
-    #                        default=dv.views.DEFAULT_MODE, required=False,
-    #                        choices=picker_params, valuesDict=pickerDict,
-    #                        action=ValidateValues,
-    #                        help=' the picker type [default or filament]')
-
-    # argParser.add_argument('--remove-rois', type=str, default=True,
-    #                        required=False, choices=on_off,
-    #                        action=ValidateValues,
-    #                        valuesDict=on_off_dict,
-    #                        help=' Enable/disable the option. '
-    #                             'The user will be able to eliminate rois')
-    # argParser.add_argument('--roi-aspect-locked', type=str, default=True,
-    #                        required=False, choices=on_off,
-    #                        action=ValidateValues,
-    #                        valuesDict=on_off_dict,
-    #                        help=' Enable/disable the option. '
-    #                             'The rois will retain the aspect ratio')
-    # argParser.add_argument('--roi-centered', type=str, default=True,
-    #                        required=False, choices=on_off,
-    #                        action=ValidateValues,
-    #                        valuesDict=on_off_dict,
-    #                        help=' Enable/disable the option. '
-    #                             'The rois will work accordance with its center')
-
     args = argParser.parse_args()
 
     kwargs = {
@@ -111,10 +81,6 @@ def main(argv=None):
         'pickerMode': args.box.getMode(),
         'shape': args.box['shape']
     }
-
-    # kwargs['removeRois'] = args.remove_rois
-    # kwargs['roiAspectLocked'] = args.roi_aspect_locked
-    # kwargs['roiCentered'] = args.roi_centered
 
     micsFolder = args.input[0]
 
