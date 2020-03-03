@@ -8,16 +8,14 @@ import datavis as dv
 import emcore as emc
 import emvis as emv
 
-from .models import RelionPickerModel
+from .models import RelionPickerModel, RelionPickerCmpModel
 
 
 class TestPickerView(dv.tests.TestView):
     __title = "Relion picking viewer"
 
-    def __init__(self, projectFolder, micStar, pickingFolder):
-        self.projectFolder = projectFolder
-        self.pickingFolder = pickingFolder
-        self.micStar = micStar
+    def __init__(self, pickModel):
+        self._model = pickModel
 
     def getDataPaths(self):
         return [
@@ -34,14 +32,7 @@ class TestPickerView(dv.tests.TestView):
         kwargs['roiAspectLocked'] = True
         kwargs['roiCentered'] = True
 
-        projectFolder = self.projectFolder  #'/Users/josem/work/data/relion30_tutorial_precalculated_results/'
-        pickingFolder = self.pickingFolder  # 'AutoPick/LoG_based'
-        pickingPath = os.path.join(projectFolder, pickingFolder)
-        micsStar = self.micStar  # 'Select/job005/micrographs_selected.star'
-
-        model = RelionPickerModel(projectFolder, pickingPath, micsStar)
-
-        return dv.views.PickerView(model, **kwargs)
+        return dv.views.PickerView(self._model, **kwargs)
 
 
 def main(argv=None):
@@ -51,32 +42,23 @@ def main(argv=None):
     defaultMics = 'Select/job005/micrographs_selected.star'
     defaultMovs = 'AutoPick/LoG_based/Movies'
 
-    if n < 1:
+    if n < 1 or n > 2:
         raise Exception(
-            "Expecting only one arguments: PICKING_FOLDER \n\n"
+            "Expecting 1 or 2 arguments: PICKING_FOLDER [PICKING_FOLDER2]\n\n"
             "Where: \n"
             "   PICKING_FOLDER: Picking folder, including project path. \n"
+            "   PICKING_FOLDER2: Another picking folder, to compare results. \n"
             "Example: \n"
-            "   python datavis/tests/test_picking_relion.py "
-            "/Users/josem/work/data/relion30_tutorial_precalculated_results/ "
+            "   em-relion-viewer ~/work/data/relion31_tutorial_precalculated_results/ "
             "%s %s " % (defaultMics, defaultMovs))
 
-
-        # For some reason Relion store input micrographs star filename
-        # in the following star file, that is not a STAR file
-        # suffixMicFn = os.path.join(pickingPath, 'coords_suffix_autopick.star')
-        #
-        # if not os.path.exists(suffixMicFn):
-        #     raise Exception("Missing expected file: %s" % suffixMicFn)
-        #
-        # with open(suffixMicFn) as f:
-        #     micsStar = f.readline().strip()
-
     pickingFolder = os.path.abspath(argv[0])
-
     # We expect project folder to be two levels up from picking folder
     projectFolder = os.path.dirname(os.path.dirname(pickingFolder))
 
-    micStar = 'CtfFind/job003/micrographs_ctf.star'
+    if n > 1:
+        pickModel = RelionPickerCmpModel(projectFolder, pickingFolder, argv[1])
+    else:
+        pickModel = RelionPickerModel(projectFolder, pickingFolder)
 
-    TestPickerView(projectFolder, micStar, pickingFolder).runApp()
+    TestPickerView(pickModel).runApp()
