@@ -1,5 +1,5 @@
 {% set name = "emvis" %}
-{% set version = "0.0.4" %}
+{% set version = "0.0.5" %}
 
 package:
   name: "{{ name|lower }}"
@@ -10,10 +10,10 @@ source:
   #sha256: "747a5557a90daf3de1d9c25b467edf7d6bbd07d9efdecbb15e8474ec05acff3a"
   path: ../../../emvis
 
-
 build:
   number: 0
-  script: "python -m pip install . --no-deps --ignore-installed -vv "
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+  noarch: python
 
 requirements:
   host:

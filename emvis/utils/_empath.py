@@ -17,8 +17,8 @@ class EmPath:
 
     EXTESIONS_MAP = {
         EXT_IMAGE: ['.mrc', '.spi', '.xmp', '.hed', '.img', '.dm3', '.dm4',
-                    '.dat'],
-        EXT_VOLUME: ['.mrc', '.vol', '.map'],
+                    '.dat', '.em'],
+        EXT_VOLUME: ['.mrc', '.vol', '.map', '.em'],
         EXT_STACK: ['.mrc', '.mrcs', '.stk', '.dm3', '.dm4', '.dat'],
         EXT_TABLE: ['.star', '.xmd', '.sqlite'],
         EXT_STD_IMAGE: ['.png', '.jpg', '.jpeg', '.tif', '.bmp'],

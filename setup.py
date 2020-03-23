@@ -38,6 +38,12 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+
+with open(path.join(here, 'emvis', '__init__.py'), encoding='utf-8') as f:
+    for line in f:
+        if '__version__' in line:
+            version = line.split("'")[1].strip()
+
 # Get the long description from the README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
@@ -65,7 +71,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.4',  # Required
+    version=version,  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -143,7 +149,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['datavis'],  # Optional
+    install_requires=['datavis', 'emcore'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
