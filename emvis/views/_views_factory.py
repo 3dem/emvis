@@ -76,7 +76,6 @@ class ViewsFactory:
            - parseCoordFunc: The parser function for coordinates file
         """
         model = ModelsFactory.createPickerModel(
-            files=micFiles, boxSize=kwargs.get('boxSize', 100),
-            sources=kwargs.get('sources'),
-            parseCoordFunc=kwargs.get('parseCoordFunc'))
+            inputMics=micFiles, boxSize=kwargs.get('boxSize', 100),
+            sources=kwargs.get('sources'))
         return dv.views.PickerView(model, **kwargs)

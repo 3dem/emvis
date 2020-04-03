@@ -188,15 +188,19 @@ class RelionPickerModel(EmPickerModel):
             [scoreThreshold, useColor]
         ])
 
-    def changeParam(self, micId, paramName, paramValue, getValuesFunc):
+    def onParamChanged(self, micId, paramName, paramValues):
         # Most cases here will modify the current coordinates
-        r = self.Result(currentCoordsChanged=True, tableModelChanged=True)
+        d = {'micId': micId,
+             'currentCoordsChanged': True,
+             'tableModelChanged': True}
+        n = True
 
         if paramName == 'scoreThreshold':
-            self._scoreThreshold = getValuesFunc()['scoreThreshold']
+            self._scoreThreshold = paramValues['scoreThreshold']
         elif paramName == 'useColor':
-            self._useColor = getValuesFunc()['useColor']
+            self._useColor = paramValues['useColor']
         else:
-            r = self.Result()  # No modification
+            n = False  # No modification
 
-        return r
+        if n:
+            self.notifyEvent(type=dv.models.PICK_EVT_DATA_CHANGED, info=d)

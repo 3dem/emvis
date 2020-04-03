@@ -24,7 +24,8 @@ class EmTableModel(dv.models.TableModel):
                     * string: This should be the path from where to read
                         the table(s). The first table will be loaded by default.
                     * tuple (string, string): Here you can specify the path and
-                        the name of the table that you want to be loaded by default.
+                        the name of the table that you want to be loaded by
+                        default.
 
         Keyword Arguments:
             imageManager=value Provide an ImageManager that can be used

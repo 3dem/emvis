@@ -120,23 +120,25 @@ class TestPickerView(dv.tests.TestView):
 
     def getDataPaths(self):
         return [
-            self.getPath("tmv_helix", "micrographs", "TMV_Krios_Falcon")
+            self.getPath("tmv_helix", "micrographs"),
+            self.getPath("tmv_helix", "coords")
         ]
 
     def createView(self):
         kwargs = dict()
         kwargs['selectionMode'] = dv.views.PagingView.SINGLE_SELECTION
         kwargs['pickerParams'] = tool_params1
-        kwargs['boxSize'] = 300
+        kwargs['boxSize'] = 170
         kwargs['pickerMode'] = dv.views.DEFAULT_MODE
         kwargs['shape'] = dv.views.SHAPE_CIRCLE
         kwargs['removeRois'] = True
         kwargs['roiAspectLocked'] = True
         kwargs['roiCentered'] = True
         dataPaths = self.getDataPaths()
-        kwargs['sources'] = self.__parseFiles(["%s*" % dataPaths[0]])
-        files = [micPath for (micPath, _) in kwargs['sources'].values()]
-        return emv.views.ViewsFactory.createPickerView(files, **kwargs)
+
+        model = emv.tests.TestPickerModel(dataPaths[0], dataPaths[1])
+        v = dv.views.PickerView(model, **kwargs)
+        return v
 
 
 if __name__ == '__main__':
