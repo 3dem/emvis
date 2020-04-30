@@ -5,8 +5,8 @@ import datavis as dv
 import emvis as emv
 
 
-class TestItemsView(dv.tests.TestView):
-    __title = "ItemsView Example"
+class TestColumnsView(dv.tests.TestView):
+    __title = "ColumnsView example"
 
     def getDataPaths(self):
         return [
@@ -15,10 +15,12 @@ class TestItemsView(dv.tests.TestView):
         ]
 
     def createView(self):
-        return dv.views.ItemsView(
-            model=emv.models.ModelsFactory.createTableModel(self._path),
-            selectionMode=dv.views.ItemsView.MULTI_SELECTION)
+        return dv.views.ColumnsView(
+            model=emv.models.ModelsFactory.createTableModel(self._path))
+
+    def test_ColumnsView(self):
+        print('test_ColumnsView')
 
 
 if __name__ == '__main__':
-    TestItemsView().runApp()
+    TestColumnsView().runApp()

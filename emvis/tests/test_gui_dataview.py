@@ -19,6 +19,9 @@ class TestDataView(dv.tests.TestView):
         return dv.views.DataView(
             model=emv.models.ModelsFactory.createTableModel(self._path))
 
+    def test_DataView(self):
+        print('test_DataView')
+
 
 if __name__ == '__main__':
     TestDataView().runApp()

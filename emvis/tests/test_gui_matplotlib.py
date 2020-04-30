@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import random
 
 import emvis as emv
 import datavis as dv
 
 from matplotlib.figure import Figure
-from matplotlib.backends.qt_compat import QtCore, QtWidgets, is_pyqt5
+from matplotlib.backends.qt_compat import QtCore as qtc
+from matplotlib.backends.qt_compat import QtWidgets as qtw
+from matplotlib.backends.qt_compat import is_pyqt5
+
 if is_pyqt5():
     from matplotlib.backends.backend_qt5agg \
         import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
@@ -18,49 +20,44 @@ else:
         import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 
 
-testDataPath = os.environ.get("EM_TEST_DATA", None)
-
-# use the code below when yue have a properly configured environment
-if testDataPath is not None:
-    path = os.path.join(testDataPath, "relion_tutorial", "import", "refine3d",
-                        "extra", "relion_it025_data.star")
-
-
-class ApplicationWindow(QtWidgets.QMainWindow):
+class PlotWidget(qtw.QWidget):
     def __init__(self, plotData, **kwargs):
-        QtWidgets.QMainWindow.__init__(self)
+        qtw.QWidget.__init__(self)
+        self._path = kwargs['path']
         self._plotData = plotData
-        self._leftContainer = QtWidgets.QWidget(self)
-        self._plotConfigWidget = dv.widgets.PlotConfigWidget(parent=self, 
+        self._mainLayout = qtw.QHBoxLayout(self)
+        self._leftContainer = qtw.QWidget(self)
+        self._plotConfigWidget = dv.widgets.PlotConfigWidget(parent=self,
                                                              **kwargs)
         self._plotConfigWidget.setMaximumWidth(
             self._plotConfigWidget.sizeHint().width())
         self._leftContainer.setMaximumWidth(
             self._plotConfigWidget.maximumWidth())
-        self._plotConfigWidget.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                             QtWidgets.QSizePolicy.Expanding)
+        self._plotConfigWidget.setSizePolicy(qtw.QSizePolicy.Expanding,
+                                             qtw.QSizePolicy.Expanding)
         self._plotConfigWidget.sigError.connect(self.__showMsgBox)
-        layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.TopToBottom,
-                                      self._leftContainer)
+        layout = qtw.QBoxLayout(qtw.QBoxLayout.TopToBottom, self._leftContainer)
         layout.addWidget(self._plotConfigWidget)
-        self._buttonPlot = QtWidgets.QPushButton(self)
+        self._buttonPlot = qtw.QPushButton(self)
         self._buttonPlot.setText('Plot')
-        self._buttonPlot.setSizePolicy(QtWidgets.QSizePolicy.Fixed,
-                                       QtWidgets.QSizePolicy.Fixed)
+        self._buttonPlot.setSizePolicy(qtw.QSizePolicy.Fixed,
+                                       qtw.QSizePolicy.Fixed)
         self._buttonPlot.clicked.connect(self.__onButtonPlotClicked)
         layout.addWidget(self._buttonPlot)
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal, self)
+        splitter = qtw.QSplitter(qtc.Qt.Horizontal, self)
         #  The Canvas
         self.__canvas = FigureCanvas(Figure(figsize=(5, 3)))
-        self.__canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
-                                    QtWidgets.QSizePolicy.Expanding)
+        self.__canvas.setSizePolicy(qtw.QSizePolicy.Expanding,
+                                    qtw.QSizePolicy.Expanding)
+        self._rightContainer = qtw.QWidget(self)
+        layout = qtw.QVBoxLayout(self._rightContainer)
+        layout.addWidget(NavigationToolbar(self.__canvas, self))
+        layout.addWidget(self.__canvas)
 
         splitter.addWidget(self._leftContainer)
         splitter.setCollapsible(0, False)
-        splitter.addWidget(self.__canvas)
-        self.setCentralWidget(splitter)
-        self.addToolBar(QtCore.Qt.TopToolBarArea,
-                        NavigationToolbar(self.__canvas, self))
+        splitter.addWidget(self._rightContainer)
+        self._mainLayout.addWidget(splitter)
 
     def __showMsgBox(self, text):
         """
@@ -72,10 +69,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             QMessageBox.Warning
             QMessageBox.Critical
         """
-        msgBox = QtWidgets.QMessageBox()
+        msgBox = qtw.QMessageBox()
         msgBox.setText(text)
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msgBox.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        msgBox.setStandardButtons(qtw.QMessageBox.Ok)
+        msgBox.setDefaultButton(qtw.QMessageBox.Ok)
         msgBox.exec_()
 
     def __plot(self, **kwargs):
@@ -92,7 +89,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             scipion = os.environ.get('SCIPION_HOME', 'scipion')
             pwplot = os.path.join(scipion, 'pyworkflow', 'apps',
                                   'pw_plot.py')
-            fileName = path
+            fileName = self._path
             plotConfig = config['config']
             params = config['params']
             plotType = plotConfig['plot-type']
@@ -145,16 +142,30 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else:
             print("Invalid plot configuration")
 
+class TestMatPlotLib(dv.tests.TestView):
+    __title = "MatPlotLib example"
 
-qapp = QtWidgets.QApplication(sys.argv)
+    def getDataPaths(self):
+        return [
+            self.getPath("relion_tutorial", "import", "refine3d",
+                        "extra", "relion_it025_data.star")
+        ]
 
-data = [random.random() for i in range(25)]
+    def createView(self):
+        path = self.getDataPaths()[0]
+        data = [random.random() for i in range(25)]
 
-tableModel = emv.models.ModelsFactory.createTableModel(path)
-tableViewConfig = tableModel.createDefaultConfig()
-#  We could pass the table instead of random data, but this is a test app.
-#  Modify according to what you need
-win = ApplicationWindow(data, params=[col.getName() for col in tableViewConfig])
-win.resize(1200, 800)
-win.show()
-sys.exit(qapp.exec_())
+        tableModel = emv.models.ModelsFactory.createTableModel(path)
+        tableViewConfig = tableModel.createDefaultConfig()
+        #  We could pass the table instead of random data, but this is a test app.
+        #  Modify according to what you need
+        view = PlotWidget(data, path=path,
+                          params=[col.getName() for col in tableViewConfig])
+        return view
+
+    def test_TestMatPlotLib(self):
+        print('test_TestMatPlotLib')
+
+
+if __name__ == '__main__':
+    TestMatPlotLib().runApp()

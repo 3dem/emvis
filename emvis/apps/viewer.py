@@ -197,10 +197,9 @@ def main(argv=None):
                 if view not in [dv.views.SLICES, dv.views.GALLERY]:
                     raise Exception("Invalid display mode for Stack")
 
+                kwargs['selection'] = dv.views.PagingView.SINGLE_SELECTION
                 viewWidget = ViewsFactory.createVolumeView(
-                    path, view=view,
-                    selection=dv.views.PagingView.SINGLE_SELECTION,
-                    **kwargs)
+                    path, view=view, **kwargs)
                     #if view == dv.views.SLICES:
                     # kwargs['toolBar'] = False
                     # kwargs['axis'] = False
@@ -209,7 +208,6 @@ def main(argv=None):
                     #     view = ViewsFactory.createDataView(
                     #         path, **kwargs)
             else:
-                print("non-vol stack")
                 if x > dv.views.MOVIE_SIZE:
                     defaultView = dv.views.SLICES
                 else:

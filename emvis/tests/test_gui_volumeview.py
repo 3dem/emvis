@@ -5,8 +5,8 @@ import datavis as dv
 import emvis as emv
 
 
-class TestMultiSliceView(dv.tests.TestView):
-    __title = "MultiSliceView example"
+class TestVolumeView(dv.tests.TestView):
+    __title = "Volume View example"
 
     def getDataPaths(self):
         return [
@@ -17,15 +17,15 @@ class TestMultiSliceView(dv.tests.TestView):
 
     def createView(self):
         print("File: %s" % self._path)
+        self._path = self.getDataPaths()[0]
         volModel = emv.models.ModelsFactory.createVolumeModel(self._path)
-        msv = dv.views.MultiSliceView(
-            None, {axis: {'model': volModel.getSlicesModel(axis),
-                          'normalize': True}
-                   for axis in [dv.models.AXIS_X, dv.models.AXIS_Y,
-                                dv.models.AXIS_Z]})
-        return msv
+        return dv.views.VolumeView(volModel, toolBar=True,
+                                   slicesMode=dv.models.AXIS_XYZ)
+
+    def test_VolumeView(self):
+        print('test_VolumeView')
 
 
 if __name__ == '__main__':
-    TestMultiSliceView().runApp()
+    TestVolumeView().runApp()
 

@@ -60,6 +60,9 @@ class TestMultiColumnsView(dv.tests.TestView):
         return MultiColumnsView(
             model=emv.models.ModelsFactory.createTableModel(self._path))
 
+    def test_MultiColumnsView(self):
+        print('test_MultiColumnsView')
+
 
 if __name__ == '__main__':
     TestMultiColumnsView().runApp()

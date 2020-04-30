@@ -21,6 +21,9 @@ class TestVolumeListView(dv.tests.TestView):
         return dv.views.VolumeListView(
             emv.models.ModelsFactory.createListModel(self.getDataPaths()))
 
+    def test_VolumeListView(self):
+        print('test_VolumeListView')
+
 
 if __name__ == '__main__':
     TestVolumeListView().runApp()

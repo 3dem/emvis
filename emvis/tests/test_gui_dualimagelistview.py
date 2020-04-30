@@ -50,6 +50,9 @@ class TestDualImageListView(dv.tests.TestView):
             emv.models.ModelsFactory.createListModel(self.getDataPaths()),
             form=form, method=printFunc)
 
+    def test_DualImageListView(self):
+        print('test_DualImageListView')
+
 
 def printFunc(*args):
     print('Example function. Print the arguments:')

@@ -12,10 +12,12 @@ import emvis as emv
 class TestPickerView(dv.tests.TestView):
     __title = "Relion picking viewer"
 
-    def __init__(self, projectFolder, micStar, pickingFolder):
+    def __init__(self, projectFolder=None, micStar=None, pickingFolder=None):
         self.projectFolder = projectFolder
         self.pickingFolder = pickingFolder
         self.micStar = micStar
+        dv.tests.TestView.__init__(self, methodName='test_PickingRelion')
+
 
     def getDataPaths(self):
         return [
@@ -89,6 +91,32 @@ class TestPickerView(dv.tests.TestView):
                     model.addCoordinates(mic.getId(), [coord])
 
         return dv.views.PickerView(model, **kwargs)
+
+    def getParams(self):
+        Param = dv.models.Param
+        projectPath = Param('project_path', dv.models.PARAM_TYPE_STRING,
+                            label='PROJECT PATH',
+                            value='relion30_tutorial_precalculated_results/',
+                            help='Project path, root of all other inputs are '
+                                 'found.')
+        micStar = Param('mic_star', dv.models.PARAM_TYPE_STRING,
+                        label='MICROGRAPHS STAR',
+                        value='Select/job005/micrographs_selected.star',
+                        help='Star file with micrographs.')
+        coordPath = Param('coord_path', dv.models.PARAM_TYPE_STRING,
+                          label='COORDINATES_PATH',
+                          value='AutoPick/LoG_based/Movies',
+                          help='Where the coordinates star files are.')
+        button = Param('run', 'button', label='Run Test')
+
+        return dv.models.Form([
+            projectPath, micStar, coordPath, button])
+
+    def getParamsPrefix(self):
+        return None
+
+    def test_PickingRelion(self):
+        print('test_PickingRelion')
 
 
 if __name__ == '__main__':

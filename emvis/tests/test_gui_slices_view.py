@@ -32,6 +32,8 @@ class TestSlicesView(dv.tests.TestView):
 
         return dv.views.SlicesView(model, text=text, currentValue=value)
 
+    def test_SlicesView(self):
+        print('test_SlicesView')
 
 if __name__ == '__main__':
     TestSlicesView().runApp()
